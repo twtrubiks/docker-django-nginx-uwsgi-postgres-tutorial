@@ -8,8 +8,9 @@
 
 [Docker 基本教學 - 從無到有 Docker-Beginners-Guide 教你用 Docker 建立 Django + PostgreSQL 📝](https://github.com/twtrubiks/docker-tutorial)
 
-* [Youtube Tutorial PART 1](xxx)
-* [Youtube Tutorial PART 2](xxxx)
+* [Youtube Tutorial PART 1 - Docker + Django + Nginx + uWSGI + Postgres - 簡介](https://youtu.be/u4XIMTOsxJk)
+* [Youtube Tutorial PART 2 - Docker + Django + Nginx + uWSGI + Postgres - 原理步驟](https://youtu.be/9K4O1UuaXrU)
+* [Youtube Tutorial PART 3 - Docker + Django + Nginx + uWSGI + Postgres - 實戰](https://youtu.be/v7Mf9TuROnc)
 
 ## 簡介
 
@@ -121,7 +122,7 @@ Nginx 來處理靜態內容，而且使用 Nginx 還有很多好處，
 
 這次的重點會放在 Nginx 以及 Django + uWSGI 設定的部份，
 
-**Nginx 的部份**，可參考 Nginx 資夾中的 Dockerfile
+**Nginx 的部份**，可參考 Nginx 資夾中的 [Dockerfile](https://github.com/twtrubiks/docker-django-nginx-uswgi-postgres-tutorial/blob/master/nginx/Dockerfile)
 
 ```Dockerfile
 FROM nginx:latest
@@ -147,7 +148,7 @@ CMD ["nginx", "-g", "daemon off;"]
 
 （ 原始的 nginx.conf  可以從 Docker 的 Nginx 容器中取得，在 `/etc/nginx` 路徑下取得 nginx.conf ）
 
-我有複製一份原始的出來 [nginx_origin.conf](nginx_origin.conf) :smiley:
+我有複製一份原始的出來 [nginx_origin.conf](https://github.com/twtrubiks/docker-django-nginx-uswgi-postgres-tutorial/blob/master/nginx/nginx_origin.conf) :smiley:
 
 nginx.conf  主要是修改兩個部分，
 
@@ -168,7 +169,7 @@ include /etc/nginx/sites-available/*;
 
 並且將 `include /etc/nginx/conf.d/*.conf;` 這行註解掉，
 
-這樣在 Nginx 資料夾中的 Dockerfile 就不用再執行刪除 default.conf 的指令，
+這樣在 Nginx 資料夾中的 [Dockerfile](https://github.com/twtrubiks/docker-django-nginx-uswgi-postgres-tutorial/blob/master/nginx/Dockerfile) 就不用再執行刪除 default.conf 的指令，
 
 因為 `include /etc/nginx/conf.d/*.conf;` 它是默認會跑的頁面，
 
@@ -206,7 +207,7 @@ sites-available 這個資料夾其實不重要，你也可以取名自己喜歡�
 # the upstream component nginx needs to connect to
 upstream uwsgi {
     # server api:8001; # use TCP
-    server unix:/docker_api/app.sock; # for a file socket    
+    server unix:/docker_api/app.sock; # for a file socket
 }
 
 # configuration of the server
@@ -232,7 +233,7 @@ server {
 
     location / {
         uwsgi_pass  uwsgi;
-        include     /etc/nginx/uwsgi_params; # the uwsgi_params file you installed         
+        include     /etc/nginx/uwsgi_params; # the uwsgi_params file you installed
     }
 
 }
@@ -247,7 +248,7 @@ TCP port socket 的方式還要好，因為開銷比較小。
 
 Nginx 的路徑 `/etc/nginx/` 底下可以找的到 uwsgi_params，如果
 
-真的找不到，可以到這裡複製進去 [uwsgi_params](xxx)。
+真的找不到，可以到這裡複製進去 [uwsgi_params](https://github.com/twtrubiks/docker-django-nginx-uswgi-postgres-tutorial/blob/master/api/uwsgi_params)。
 
 （我複製出來一份給大家，如果你照按我的步驟基本上都是會有）
 
@@ -287,7 +288,7 @@ Nginx 會把接收到的 request 依照 uwsgi 協議轉換，然後再轉發給 
 
 簡單來說，就是要讓 Nginx 一直保持服務，否則 Container  會退出並且停止。
 
-**Django + uWSGI 的部份**，可參考 api 資料夾裡面的 Dockerfile，
+**Django + uWSGI 的部份**，可參考 api 資料夾裡面的 [Dockerfile](https://github.com/twtrubiks/docker-django-nginx-uswgi-postgres-tutorial/blob/master/api/Dockerfile)，
 
 裡面基本上很簡單，但有一個想提一下，有時候我們
 `pip install` 的時候很慢，
@@ -328,7 +329,7 @@ vacuum          = true
 
 最後就是使用 `docker-compose.yml` 管理這些 Container 了，
 
-可直接參考 [docker-compose.yml](xxx)
+可直接參考 [docker-compose.yml](https://github.com/twtrubiks/docker-django-nginx-uswgi-postgres-tutorial/blob/master/docker-compose.yml)
 
 ## 執行步驟
 
@@ -499,7 +500,7 @@ container 時，你就適合使用 supervisor。
 
 那你會問 ？ 那我要如何管理 container 意外終止退出呢  :confused:
 
-這時候可以參考 [docker-compose.yml](xx) ，利用 `restart=always` 解決，他會在意外終止
+這時候可以參考 [docker-compose.yml](https://github.com/twtrubiks/docker-django-nginx-uswgi-postgres-tutorial/blob/master/docker-compose.yml) ，利用 `restart=always` 解決，他會在意外終止
 
 時幫你重新啟動 :relaxed:
 
