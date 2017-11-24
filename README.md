@@ -274,7 +274,15 @@ Nginx 會把接收到的 request 依照 uwsgi 協議轉換，然後再轉發給 
 
 料，就可以直接從 Cache 中取出。
 
-最後一步
+最後一步，
+
+溫馨小提醒:heart:
+
+什麼是 daemon :question::question::question:
+
+其實不用把他想的太難，簡單把他想成是一種 service 即可:smile:
+
+如果想更深入的了解 daemon，請 google **linux daemon** :pencil2:
 
 為什麼要使用 `nginx -g daemon off` 的方式啟動 Nginx，
 
@@ -298,8 +306,6 @@ Nginx 會把接收到的 request 依照 uwsgi 協議轉換，然後再轉發給 
 接著說明 uwsgi.ini，裡面是一些設定檔
 
 ```ini
-[uwsgi]
-
 [uwsgi]
 
 # http=0.0.0.0:8000
@@ -514,7 +520,7 @@ container 時，你就適合使用 supervisor。
 
 他才瞭解自己不懂的地方還是很多，總之，建議大家動手下去依照我的步驟玩玩看，相信多多少少會有收穫
 
-，我也是 Docker 新手，如果我有任何講錯的地方，請麻煩大家在和我說，我會再修改 :blush:
+，我也是 Docker 新手，如果我有任何講錯的地方，請麻煩大家和我說，我會再修改 :blush:
 
 ## 執行環境
 
