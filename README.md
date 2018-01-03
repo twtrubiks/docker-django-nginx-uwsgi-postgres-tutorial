@@ -522,6 +522,11 @@ container 時，你就適合使用 supervisor。
 
 ，我也是 Docker 新手，如果我有任何講錯的地方，請麻煩大家和我說，我會再修改 :blush:
 
+如果意猶未盡，延伸閱讀 :satisfied:
+
+* [實戰 Docker + Django + Nginx + uWSGI + Postgres - Load Balance 📝](https://github.com/twtrubiks/docker-django-nginx-uwsgi-postgres-load-balance-tutorial)
+* [Docker Swarm 基本教學 - 從無到有 Docker-Swarm-Beginners-Guide📝](https://github.com/twtrubiks/docker-swarm-tutorial)
+
 ## 執行環境
 
 * Mac
