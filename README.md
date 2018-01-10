@@ -81,6 +81,10 @@ Nginx 來處理靜態內容，而且使用 Nginx 還有很多好處，
 * Nginx 可以設定 反向代理器
 * Nginx 可以進行多台機器的負載平衡（ Load balance ）
 
+溫馨小提醒:heart:
+
+如果你想更進一步的了解**反向代理器**，可參考 [正向代理器 VS 反向代理器](https://github.com/twtrubiks/docker-django-nginx-uwsgi-postgres-load-balance-tutorial#%E6%AD%A3%E5%90%91%E4%BB%A3%E7%90%86%E5%99%A8--vs-%E5%8F%8D%E5%90%91%E4%BB%A3%E7%90%86%E5%99%A8) 的說明 :smile:
+
 看到這邊你可能會問我？
 
 那為什麼我在本機開發時，都不需要有 Nginx 以及 uWSGI 就可以執行呢 :confused:
@@ -331,7 +335,13 @@ vacuum          = true
 
 [Things to know (best practices and 「issues」) READ IT !!!](http://uwsgi-docs.readthedocs.io/en/latest/ThingsToKnow.html)
 
-不過我自己在設定這邊的時候，一直出現問題，最後果斷先用 root 下去執行 :sweat_smile:
+我最後還是選擇使用 root 下去執行，原因是如果沒有使用 root ，會出現權限錯誤，
+
+最後我在 [這邊](https://stackoverflow.com/questions/18480201/ubuntu-nginx-emerg-bind-to-0-0-0-080-failed-13-permission-denied) 找到答案，
+
+*the socket API bind() to a port less than 1024, such as 80 as your title mentioned, need root access.*
+
+比較簡單的解法就是使用 root 執行:smile:
 
 最後就是使用 `docker-compose.yml` 管理這些 Container 了，
 
