@@ -42,36 +42,34 @@ For more Django examples, check out my [Github](https://github.com/twtrubiks?utf
 
 ![](https://i.imgur.com/AkcCtDa.png)
 
-Nginx is a type of Web Server that uses few resources and has high stability. Nginx's high stability is worth noting.
+Nginx is a type of Web Server that uses few resources and has high stability.
 
-Nginx solves the **C10K** problem. What is **C10K**? The original literature can be found here [The C10K problem](http://www.kegel.com/c10k.html).
+Nginx's high stability is a result of solving the **C10K** problem. What is **C10K**? The original literature can be found here [The C10K problem](http://www.kegel.com/c10k.html).
 
-**C10K** is the 10000 Client problem. Previously, when a server receives more than 10000 concurrent connections, it may not be able to operate normally.
+**C10K** is the Client 10000 problem. Previously, when a server receives more than 10000 concurrent connections, it may not be able to operate normally.
 
-Nginx cannot natively support dynamic content, so, any dynamic content needs to be set up separately. [uWSGI](https://uwsgi-docs.readthedocs.io/en/latest/) is used to facilitate the communication between Nginx and the dynamic content.
+Nginx does not natively support dynamic content, so, any dynamic content needs to be set up separately. [uWSGI](https://uwsgi-docs.readthedocs.io/en/latest/) is used to facilitate the communication between Nginx and the dynamic content.
 
 Take a look at the diagram below (important)
 
 :star: the web client <-> the web server ( Nginx )  <-> unix socket  <-> uWSGI <-> Django :star:
 
-You may ask me, what is uWSGI :confused:
+You may ask me, what is uWSGI :confused:?
 
-uWSGI implements a communication protocol. You can think of it as an connector (which communicates with Django).
+uWSGI implements a communication protocol. You can think of it as a connector (which communicates with Django).
 
-Usually, Django will be put on the http server ( Nginx ), so, when the server receives a request, how will it pass the data to Django?
+Usually, Django will be put behind the http server ( Nginx ), so, when the server receives a request, how will it pass the data to Django?
 
 
 This is uWSGI's functionality :wink:
 
-So why do we still need Nginx :confused:
+So why do we still need Nginx :confused:?
 
 First, let's understand a concept,
 
-Nginx is in charge of static content (html, js, css, images......), uWSGI is in charge of Python's dynamic content.
+Nginx is in charge of static content (html, js, css, images, ...), uWSGI is in charge of Python's dynamic content.
 
-uWSGI does not handle static content well (it's inefficient), so, we can use
-
-Nginx to handle static content. In addition, Nginx has a lot of other benefits.
+uWSGI does not handle static content well (it's inefficient), so, we can use Nginx to handle static content. In addition, Nginx has a lot of other benefits.
 
 * Nginx, compared to uWSGI, handles static resources better
 * Nginx allows cache configuration
@@ -88,25 +86,23 @@ Why can I still run Django without Nginx and uWSGI? :confused:
 
 To run Django, we usually use `python manage.py runserver` to run the server.
 
-Actually, When you run this command, Django helps you start a small http server.
+Actually, when you run this command, Django helps you start a small http server.
 
 Of course, this is just for convenience during development. We would not do this in production ( not to mention performance :disappointed_relieved: )
 
-Hey :confused: isn't there Gunicorn? Previously Gunicorn was mentioned in
+Hey :confused: isn't there Gunicorn? Previously you mentioned Gunicorn in
 [Deploying_Django_To_Heroku_Tutorial](https://github.com/twtrubiks/Deploying_Django_To_Heroku_Tutorial)
 [Deploying-Flask-To-Heroku](https://github.com/twtrubiks/Deploying-Flask-To-Heroku)
 
 So why can't we use Gunicorn instead of uWSGI?
 
-The last time, when I used Gunicorn, it is because the application resided in Heroku, and it is recommended to use Gunicorn to set up a web server. As for which is better, Gunicorn or uWSGI, I feel that it is up your use case :wink:
+The last time, when I used Gunicorn, it was because the application resided in Heroku, and it is recommended to use Gunicorn to set up a web server there. As for which is better, Gunicorn or uWSGI, I feel that it is up your use case :wink:
 
-Hold on, since we have already talked about Nginx, isn't there also [Apache](https://httpd.apache.org/)? I heard that a lot of people use that :stuck_out_tongue_winking_eye:
+Wait a minute, since we are talking about Nginx, isn't there also [Apache](https://httpd.apache.org/)? I heard that a lot of people use that :stuck_out_tongue_winking_eye:
 
-Some people may ask, so should I choose [Nginx](https://nginx.org/en/) or [Apache](https://httpd.apache.org/) :confused:
+You may also be asking, so should I choose [Nginx](https://nginx.org/en/) or [Apache](https://httpd.apache.org/) :confused:
 
-I think that there is no best Server, the point is that the Server meets your requirements.
-
-Then you choose it :smiley:
+I think that there is no best server, if the server meets your requirements, the choose it :smiley:
 
 ## Tutorial
 
@@ -116,7 +112,7 @@ My main reference is [https://uwsgi-docs.readthedocs.io/en/latest/tutorials/Djan
 
 But there are some differences :smirk:
 
-The main focus this time will be on the set up of Nginx with Django + uWSGI
+The main focus this time will be on setting up of Nginx with Django + uWSGI
 
 **Nginx Section**, you can take a look at [Dockerfile](https://github.com/twtrubiks/docker-django-nginx-uswgi-postgres-tutorial/blob/master/nginx/Dockerfile) in the folder.
 
@@ -140,21 +136,21 @@ Let me explain the steps,
 
 First Step
 
-Firstly, copy nginx.conf to the `/etc/nginx/nginx.conf` path.
+Copy nginx.conf to the `/etc/nginx/nginx.conf` path.
 
 (the original nginx.conf can be retrieved from the Nginx Docker container, inside the `/etc/nginx` path you can find nginx.conf)
 
 I have copied out a part of the original file [nginx_origin.conf](https://github.com/twtrubiks/docker-django-nginx-uswgi-postgres-tutorial/blob/master/nginx/nginx_origin.conf) :smiley:
 
-For nginx.conf, there are mainly two parts that needs to be modified
+For nginx.conf, there are mainly two parts that needs to be modified.
 
-The first part is to change the user to root
+The first part is to change the user to root:
 
 ```conf
 user  root;
 ```
 
-The other part is
+The other part is:
 
 ```conf
 # include /etc/nginx/conf.d/*.conf;
@@ -166,9 +162,7 @@ Add a line `include /etc/nginx/sites-available/*;`
 and remove `include /etc/nginx/conf.d/*.conf;`
 
 This way the [Dockerfile](https://github.com/twtrubiks/docker-django-nginx-uswgi-postgres-tutorial/blob/master/nginx/Dockerfile)
-in the Nginx folder does not need the command to delete the default.conf.
-
-Because `include /etc/nginx/conf.d/*.conf;` is the default page that will run.
+in the Nginx folder does not need the command to delete the default.conf because `include /etc/nginx/conf.d/*.conf;` is the default page that will run.
 
 But now, we need to configure it :smirk:
 
@@ -194,9 +188,7 @@ Third Step
 
 sites-available This directory is actually not important, you can create a folder with a name you want too, but
 
-*sites-enabled* this directory is more important because we need to use symlinks.
-
-(through the Linux command `ln`) link *sites-enabled* with *my_nginx.conf.
+*sites-enabled* This directory is more important because we need to use symlinks (through the Linux command `ln`) link *sites-enabled* with *my_nginx.conf.
 
 Next, let's talk about the configuration in my_nginx.conf
 
@@ -236,25 +228,27 @@ server {
 }
 ```
 
-Let's first look at the upstream portion. It uses Unix sockets which is better than using TCP port sockets because there is less overhead.
+Let's first look at the upstream part.
+
+It uses Unix sockets which is better than using TCP port sockets because there is less overhead.
 
 Next is `include     /etc/nginx/uwsgi_params`, usually the uwsgi_params can be found in the Nginx directory `/etc/nginx`.
 
-If you really can't find it, you can copy one from [uwsgi_params](https://github.com/twtrubiks/docker-django-nginx-uswgi-postgres-tutorial/blob/master/api/uwsgi_params) (I copied out the file for everyone. If you follow my steps, you will probably have it)
+If you really can't find it, you can copy one from [uwsgi_params](https://github.com/twtrubiks/docker-django-nginx-uswgi-postgres-tutorial/blob/master/api/uwsgi_params) (I copied out the file for everyone but if you follow my steps, you will probably have it)
 
-Next, let's talk about uwsgi_pass or proxy_pass, which is what you have seen.
+Next, let's talk about uwsgi_pass or what you have seen is proxy_pass.
 
-Nginx, following uwsgi's protocol, will convert the request received. Then, it will pass the request to Django to handle it.
+Nginx will convert the request received to uwsgi's protocol. Then, it will pass the request to Django to handle it.
 
-Then why can't we just use a proxy ( default to http protocol ) but we have to use uwsgi :confused:
+Then why can't we just use a proxy ( default to http protocol ) but we have to use uwsgi :confused:?
 
-The main reason is because efficiency is take into consideration.
+The main reason is because efficiency is taken into consideration.
 
-Since we have talked about it so much, I'll briefly explain what is a **Proxy server**.
+Since we have already talked about it so much, I'll briefly explain what is a **Proxy server**.
 
 When a client from an external network sends a request, the proxy server will forward it to an internal server to handle it. Once it's done, the response goes back through the proxy server to the client in the external network.
 
-What's the benefit in this :confused: the benefit is that it protects the internal server, preventing the client from directly attacking the internal server.
+What's the benefit in this :confused:? The benefit is that it protects the internal server, preventing clients from directly attacking the internal server.
 
 Another benefit is the caching mechanism. If the client accesses similar resources, the resources can be retrieved directly from cache.
 
@@ -264,11 +258,11 @@ Gentle reminder :heart:
 
 What is a daemon :question::question::question:
 
-Actually, it is not very hard to understand, you can understand it as a type of service :smile:
+Actually, it is not very hard to understand, you can think of it as a type of service :smile:
 
 If you want to learn more about daemons, you can google **linux daemon** :pencil2:
 
-Why do we use `nginx -g daemon off` to start Nginx but not `/etc/init.d/nginx start` :confused:
+Why do we use `nginx -g daemon off` to start Nginx but not `/etc/init.d/nginx start` :confused:?
 
 This question requires us to go back and understand Docker.
 
@@ -276,11 +270,13 @@ The excerpt below is from [Docker Nginx](https://hub.docker.com/_/nginx/)
 
 ***If you add a custom CMD in the Dockerfile, be sure to include -g daemon off; in the CMD in order for nginx to stay in the foreground, so that Docker can track the process properly (otherwise your container will stop immediately after starting)!***
 
-Simply put, it is to keep the Nginx service running. If not, the container will stop.
+Simply put, it is to keep the Nginx service running. If not, the container will exit.
 
 **Django + uWSGI Section**, you can take a look at the [Dockerfile](https://github.com/twtrubiks/docker-django-nginx-uswgi-postgres-tutorial/blob/master/api/Dockerfile) in the api folder
 
-It it mostly quite simple, but there I would like to point out one thing. Sometimes when we `pip install`, it runs very slowly.
+It it mostly quite simple, but there I would like to point out one thing:
+
+Sometimes when we `pip install`, it runs very slowly.
 
 In these situations, we can add a `-i` option to change the index source, making it run a bit faster :grin:
 
@@ -306,15 +302,13 @@ module=django_rest_framework_tutorial.wsgi:application
 vacuum          = true
 ```
 
-Communication to Nginx is done through the socket file ( app.sock ), the uid and gid parts are permissions.
+Communication to Nginx is done through the socket file ( app.sock ). The uid and gid parts are permissions.
 
 You can take a look at the article below. The article includes why we do not use root permissions.
 
 [Things to know (best practices and 「issues」) READ IT !!!](http://uwsgi-docs.readthedocs.io/en/latest/ThingsToKnow.html)
 
-I decided to use root anyways because without root, there will be permission errors.
-
-Finally, I had found my answer [here](https://stackoverflow.com/questions/18480201/ubuntu-nginx-emerg-bind-to-0-0-0-080-failed-13-permission-denied)
+I decided to use root anyways because without root, there will be permission errors which I finally found my answer [here](https://stackoverflow.com/questions/18480201/ubuntu-nginx-emerg-bind-to-0-0-0-080-failed-13-permission-denied)
 
 *the socket API bind() to a port less than 1024, such as 80 as your title mentioned, need root access.*
 
@@ -342,7 +336,7 @@ If you then see something like the below, then it has run successfully.
 
 Next, go to [http://localhost:8080/api/music/](http://localhost:8080/api/music/)
 
-If you immediately see the below image, it means that you have completed a small step.
+If you immediately see something like the image below, it means that you have completed a small step.
 
 Seeing this is normal, because we still need to migrate.
 
@@ -386,17 +380,17 @@ Next, you can go to [http://localhost:8080/api/music/](http://localhost:8080/api
 
 Why do we need to do this step?
 
-The purpose of the step is to pass all the static content to Nginx for it to process. In my_nginx.conf, you will notice that we pointed Nginx to the `/docker_api/static` path.
+The purpose of the step is to pass all the static content to Nginx to process. In my_nginx.conf, you will notice that we pointed Nginx to the `/docker_api/static` path.
 
 As said above, Nginx is in charge of all the static content ( html, css, images, ...... ) while uWSGI is in charge of Python's dynamic content.
 
-If you are interested to try it out, use Django + uWSGI without Nginx. If you do this, it will function normally but you will notice that the css, images and others will not be retrievable, as shown below
+If you are interested to try it out, use Django + uWSGI without Nginx. If you do this, it will function normally but you will notice that the css, images and others cannot be retrieved, as shown below
 
 ![](https://i.imgur.com/btiI68s.png)
 
 Because uWSGI does not handle static content well :sob:
 
-Although this can be resolved, take a look at [https://uwsgi-docs.readthedocs.io/en/latest/StaticFiles.html](https://uwsgi-docs.readthedocs.io/en/latest/StaticFiles.html)
+Though this can be resolved. Take a look at [https://uwsgi-docs.readthedocs.io/en/latest/StaticFiles.html](https://uwsgi-docs.readthedocs.io/en/latest/StaticFiles.html)
 
 but I recommend that you use Nginx, because it can do more things :smiley:
 
@@ -456,33 +450,35 @@ As for the editing the `hosts` configuration file part, we can just go to [http:
 
 [Supervisor](http://supervisord.org/)
 
-is a type of process management tool. Using it, you can easily start, stop, restart and monitor one
+is a type of process management tool. Using it, you can easily start, stop, restart and monitor one or many processes.
 
-or many processes. For example, if a process stalls, once Supervisor notices, it will automatically restart
+For example, if a process stalls, once Supervisor notices, it will automatically restart the process. No need to write any programs ( such as your own shell programs ) to control it.
 
-the process, no need to write any programs ( no need to write your own shell programs to control it ).
+Now, you may ask me:
 
-Now, you may ask me, should I use it :confused:
+Should I use Supervisor :confused:?
 
 When do I use Supervisor?
 
-When you need to start multiple independent processes in a container, then you can use Supervisor.
+You use Supervisor when you need to start multiple independent processes in a container.
 
-Let me give you an example, let's say you create a container with Nginx + uWSGI + Django in the same container. Then, Supervisor will be suitable.
+Let me give you an example, let's say you create a container with Nginx + uWSGI + Django, all in the same container. Then, in this case, Supervisor will be suitable.
 
-However, if you are using Docker, having Nginx and uWSGI + Django separate is better ( meaning, separate them in two different containers )
+Though, if you are using Docker, having Nginx and uWSGI + Django separate is better ( meaning, separate them in two different containers )
 
 Then, use docker-compose to manage the containers; which is this example's method.
 
-Then you will ask, how do I manage containers which unexpectedly exit :confused:
+Then you will ask, how do I manage containers which unexpectedly exit :confused:?
 
-In this case, you can take a look at [docker-compose.yml](https://github.com/twtrubiks/docker-django-nginx-uswgi-postgres-tutorial/blob/master/docker-compose.yml) which uses `restart=always` to solve this problem. It will help you restart the container when the container exits unexpectedly :relaxed:
+In this case, you can take a look at the [docker-compose.yml](https://github.com/twtrubiks/docker-django-nginx-uswgi-postgres-tutorial/blob/master/docker-compose.yml) which uses `restart=always` to solve this problem. It will help you restart the container when the container exits unexpectedly :relaxed:
 
 ## Conclusion
 
-It is also my first time setting up Django + Nginx + uWSGI + Postgres, during which I had to mess around with the configuration for a very long time :scream:. But, I wholeheartedly recommend Docker.
+This also my first time setting up Django + Nginx + uWSGI + Postgres, during which I had to mess around with the configuration for a very long time :scream:. But, I wholeheartedly recommend Docker.
 
-Using Docker to play with this project was really fun, even when broke it, I can just start over again. It's fast and through this exercise, you will see that Nginx actually has a lot of features which you can play with such as the Load Balancer. Through which you can better understand servers. I myself understood a lot from it. In short, I recommend that everyone get their hands dirty, follow my footsteps and play with it. I believe that more or less everyone will learn something.
+Using Docker was really fun, even when I brake the project, I can just start over again. It's fast and, through this exercise, you will see that Nginx actually has a lot of features which you can play with such as the Load Balancer. Through which you can better understand servers; I myself understood a lot from it.
+
+In short, I recommend that everyone get their hands dirty, follow my footsteps and play with it. I believe that more or less everyone will learn something.
 
 I am also new to Docker, if I have done anything wrong, please let me know, I will make the necessary changes :blush:
 
