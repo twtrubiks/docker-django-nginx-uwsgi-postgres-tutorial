@@ -1,5 +1,7 @@
 # docker-django-nginx-uwsgi-postgres-tutorial
 
+ [English version - README.en.md](https://github.com/twtrubiks/docker-django-nginx-uwsgi-postgres-tutorial/blob/master/README.en.md)
+
  Docker + Django + Nginx + uWSGI + Postgres  基本教學 - 從無到有
 
  教你用 [Docker](https://www.docker.com/) 建立 [Django](https://www.djangoproject.com/) + [Nginx](https://nginx.org/en/) + [uWSGI](https://uwsgi-docs.readthedocs.io/en/latest/) + [PostgreSQL](https://www.postgresql.org/) 📝
