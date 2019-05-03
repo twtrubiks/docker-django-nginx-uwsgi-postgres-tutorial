@@ -365,13 +365,17 @@ vacuum          = true
 
 ![](https://i.imgur.com/G28IGca.png)
 
-接著瀏覽 [http://localhost:8080/api/music/](http://localhost:8080/api/music/)
+接著瀏覽 [http://localhost/](http://localhost/)
 
 如果你順利看到以下畫面代表成功一小步，
 
-看到這是正常的，因為我們還必須 migrate
+![](https://i.imgur.com/196wOkr.png)
 
-![](https://i.imgur.com/d0jlMo9.png)
+接著再瀏覽 [http://localhost/api/music/](http://localhost/api/music/)
+
+![](https://i.imgur.com/2QGKeex.png)
+
+看到這些都是正常的，因為我們還必須 migrate。
 
 terminal 輸出也沒有任何問題 ( 雖然這裡很容易卡關 :sweat_smile: )
 
@@ -405,11 +409,11 @@ python manage.py collectstatic
 
 ![](https://i.imgur.com/zaz2bYX.png)
 
-接著可以再瀏覽 [http://localhost:8080/api/music/](http://localhost:8080/api/music/)，
+接著可以再瀏覽 [http://localhost/api/music/](http://localhost/api/music/)，
 
 你就會發現正常顯示了 :smile:
 
-![](https://i.imgur.com/EybsFZ3.png)
+![](https://i.imgur.com/eb7O0g8.png)
 
 為什麼我們要執行這步驟？
 
@@ -425,7 +429,7 @@ Nginx 負責靜態內容（ html css 圖片...... ），uWSGI 負責 Python 的�
 
 可以正常執行，但你會發現你的 css 圖片 那些全部會抓不到，如下圖，
 
-![](https://i.imgur.com/btiI68s.png)
+![](https://i.imgur.com/rgPfYeT.png)
 
 因為 uWSGI 本身對處理靜態的內容不是很好 :sob:
 
@@ -435,11 +439,11 @@ Nginx 負責靜態內容（ html css 圖片...... ），uWSGI 負責 Python 的�
 
 ## 執行畫面
 
-瀏覽 [http://localhost:8080/api/music/](http://localhost:8080/api/music/)
+瀏覽 [http://localhost/api/music/](http://localhost/api/music/)
 
-![](https://i.imgur.com/jl43jST.png)
+![](https://i.imgur.com/z0KZWEp.png)
 
-![](https://i.imgur.com/Fw6LjbE.png)
+![](https://i.imgur.com/szUTVAx.png)
 
 ## `hosts` 設定檔 以及 查詢內網 ip
 
@@ -485,9 +489,9 @@ ifconfig
 
 還有剛剛教大家修改 `hosts` 設定檔的部分，
 
-我們可以直接瀏覽 [http://twtrubiks.com:8080/api/music/](http://twtrubiks.com:8080/api/music/)
+我們可以直接瀏覽 [http://twtrubiks.com/api/music/](http://twtrubiks.com/api/music/)
 
-![](https://i.imgur.com/efEqLd0.png)
+![](https://i.imgur.com/ufKRO9a.png)
 
 ## 介紹 Supervisor
 
