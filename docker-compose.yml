@@ -38,6 +38,22 @@ services:
         depends_on:
         - db
 
+    # auto migrate django
+    # migration:
+    #     build: ./api
+    #     command:
+    #         - /bin/sh
+    #         - -c
+    #         - |
+    #           python manage.py collectstatic --noinput
+    #           python manage.py migrate
+    #           python manage.py makemigrations musics
+    #           python manage.py migrate
+    #     volumes:
+    #     - api_data:/docker_api
+    #     depends_on:
+    #     - db
+
 volumes:
     api_data:
     pgdata:
