@@ -526,6 +526,87 @@ container 時，你就適合使用 supervisor。
 
 時幫你重新啟動 :relaxed:
 
+## CORS 踩雷分享
+
+* [Youtube Tutorial - Django + Nginx + uWSGI CORS 踩雷分享](https://youtu.be/WY2zCVfvu1M)
+
+如果不了解 CORS，請先閱讀 [了解 Same-Origin Policy 以及 CORS 📝](https://github.com/twtrubiks/CORS-tutorial)。
+
+設定是 django + nginx + uwsgi，這時候我們先來思考一個問題，
+
+這樣你可能會問我，CORS 我是要設定在 Nginx 上，還是 Django，又或是兩邊都設定呢 :question:
+
+秉持實驗的精神，三種況狀都來嘗試 ( 建議看影片 ):
+
+方法一 : 兩邊都設定 ( 失敗 )
+
+如果你兩邊都設定，會出現類似以下的錯誤訊息
+
+```text
+Access to XMLHttpRequest at 'http://127.0.0.1/api/music/' from origin 'http://127.0.0.1:8000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: The 'Access-Control-Allow-Origin' header contains multiple values '*, *', but only one is allowed.
+```
+
+方法二 : 只設定在 Nginx 上 ( 失敗 )
+
+nginx 上設定 CORS，方法可參考 [here](https://github.com/twtrubiks/docker-django-nginx-uwsgi-postgres-tutorial/blob/master/nginx/my_nginx.conf#L37)，
+
+補充說明，
+
+**Access-Control-Allow-Origin**
+
+允許的 domain，詳細說明可參考 [Access-Control-Allow-Origin](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin)。
+
+**Access-Control-Allow-Credentials**
+
+詳細說明可參考 [Access-Control-Allow-Credentials](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials)。
+
+**Access-Control-Allow-Methods**
+
+詳細說明可參考 [Access-Control-Allow-Methods](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Access-Control-Allow-Methods)。
+
+**Access-Control-Allow-Headers**
+
+preflight request 指的是 CORS 發出的 OPTIONS request，
+
+( 如果不知道什麼是 preflight request，可參考 [預檢請求](https://github.com/twtrubiks/CORS-tutorial#%E9%A0%90%E6%AA%A2%E8%AB%8B%E6%B1%82-preflight-request) )
+
+actual request 指的是實際發出的 request，這邊是指 actual request。
+
+詳細說明可參考 [Access-Control-Allow-Headers](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Access-Control-Allow-Headers)。
+
+**Access-Control-Expose-Headers**
+
+指 broswer 可以使用/讀取那些 response 中的 headers，預設有這些 headers，
+
+`Cache-Control` `Content-Language` `Content-Type` `Expires` `Last-Modified` `Pragma`，
+
+如果想拿到其他的 headers，就必須再手動加進去。
+
+詳細說明可參考 [Access-Control-Expose-Headers](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Access-Control-Expose-Headers)。
+
+**Access-Control-Max-Age**
+
+preflight request 可以被 Cache 多長的時間。在時間內，broswer 會使用 Cache。
+
+詳細說明可參考 [Access-Control-Max-Age](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Access-Control-Max-Age)。
+
+如果你設定在 Nginx 上，你會發現你的 CORS headers 被吃掉了，
+
+```text
+Access to XMLHttpRequest at 'http://127.0.0.1/api/music/' from origin 'http://127.0.0.1:8000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+```
+
+這個問題我暫時也找不到方法，相關 [issuse](https://github.com/unbit/uwsgi/issues/1550)。
+
+( 如果有人找到方法，請和小弟說一下，我去嘗試看看 )
+
+方法三 : 只設定在 Django  上 ( 成功 )
+
+django 上可以設定 CORS，透過 django-cors-headers 方法可參考 [文章](https://github.com/twtrubiks/CORS-tutorial#cors)。
+
+
+**所以，如果你的環境是 django + nginx + uwsgi，CORS 建議使用 django-cors-headers 設定在 Django 上。**
+
 ## 後記：
 
 自己也是第一次建立 Django + Nginx + uWSGI + Postgres ，中間也搞了超久 :scream:，但我真心推薦 Docker，

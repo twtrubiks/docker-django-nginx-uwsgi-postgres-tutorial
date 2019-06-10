@@ -2,3 +2,4 @@ django<2.0
 djangorestframework
 psycopg2
 uwsgi
+django-cors-headers
