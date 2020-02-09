@@ -445,6 +445,35 @@ Nginx 負責靜態內容（ html css 圖片...... ），uWSGI 負責 Python 的�
 
 ![](https://i.imgur.com/szUTVAx.png)
 
+## 即時監控 Nginx 網頁狀態
+
+打開 stub_status 模組, 請參考 [my_nginx.conf](https://github.com/twtrubiks/docker-django-nginx-uwsgi-postgres-tutorial/blob/master/nginx/my_nginx.conf),
+
+```conf
+location /nginx/status {
+    # 啟用 stub_status
+    stub_status on;
+
+    # 關閉/啟用 log
+    # access_log /usr/local/nginx/logs/status.log;
+    access_log off;
+
+    auth_basic "NginxStatus";
+
+    # 限制可存取的 IP
+    # allow 127.0.0.1;
+    # deny all;
+}
+```
+
+目前 nginx 的連接狀況
+
+![](https://i.imgur.com/GWysybq.png)
+
+也可以設定只允許哪些 ip 訪問此頁面, 如果不在 ip 內會出現拒絕403
+
+![](https://i.imgur.com/iFZF8Yh.png)
+
 ## `hosts` 設定檔 以及 查詢內網 ip
 
 修改 `hosts` 設定檔
