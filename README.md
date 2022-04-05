@@ -656,7 +656,7 @@ django 上可以設定 CORS，透過 django-cors-headers 方法可參考 [文章
 ## 執行環境
 
 * Mac
-* Python 3.6.2
+* Python 3.8.2
 * windows 10
 
 ## Reference

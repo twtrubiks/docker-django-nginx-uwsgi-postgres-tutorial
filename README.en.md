@@ -346,7 +346,7 @@ The terminal output is also fine ( though it is easy to get stuck here :sweat_sm
 
 ![](https://i.imgur.com/RBW8eQt.png)
 
-Next, open another terminal and go into the api ( Django + uWSGI ) container. 
+Next, open another terminal and go into the api ( Django + uWSGI ) container.
 
 You can find the steps in the previous [docker-tutorial-指令介紹](https://github.com/twtrubiks/docker-tutorial#指令介紹)，
 
@@ -490,8 +490,9 @@ If you are still learning to read, read more :satisfied:
 ## Environment
 
 * Mac
-* Python 3.6.2
+* Python 3.8.2
 * windows 10
+* Liunx
 
 ## Reference
 
