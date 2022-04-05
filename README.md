@@ -636,6 +636,137 @@ django 上可以設定 CORS，透過 django-cors-headers 方法可參考 [文章
 
 **所以，如果你的環境是 django + nginx + uwsgi，CORS 建議使用 django-cors-headers 設定在 Django 上。**
 
+## 透過 Nginx Log 分析 PV UV
+
+使用的可參考 [nginx.conf](https://github.com/twtrubiks/docker-django-nginx-uwsgi-postgres-tutorial/blob/master/nginx/nginx.conf),
+
+```conf
+http {
+    ......
+    log_format  main  '$host $remote_addr - $remote_user [$time_local] '
+                      '"$request" $status $body_bytes_sent '
+                      '"$http_referer" "$http_user_agent" '
+                      '$request_time';
+......
+```
+
+這邊我也放了範例的 log 給各位, 可參考 [nginx-access.example_log](https://github.com/twtrubiks/docker-django-nginx-uwsgi-postgres-tutorial/blob/master/nginx/nginx-access.example_log)
+
+```log
+localhost 172.30.0.1 - - [05/Apr/2022:03:45:05 +0000] "GET /api/ HTTP/1.1" 200 1722 "-" "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:98.0) Gecko/20100101 Firefox/98.0" 0.106
+localhost 172.30.0.1 - - [05/Apr/2022:03:46:05 +0000] "GET /api/ HTTP/1.1" 200 1722 "-" "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:98.0) Gecko/20100101 Firefox/98.0" 0.206
+localhost 172.30.0.2 - - [06/Apr/2022:04:45:05 +0000] "GET /api/ HTTP/1.1" 200 1722 "-" "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:98.0) Gecko/20100101 Firefox/98.0" 0.306
+localhost 172.30.0.2 - - [06/Apr/2022:04:47:05 +0000] "GET /api/ HTTP/1.1" 200 1722 "-" "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:98.0) Gecko/20100101 Firefox/98.0" 0.506
+```
+
+### PV
+
+Page View 的縮寫, 可以簡單看成是一個 request 就是一個 PV.
+
+計算所有的 PV 數
+
+```cmd
+cat nginx-access.example_log | wc -l
+```
+
+計算某天的 PV 數
+
+```cmd
+cat nginx-access.example_log | sed -n '/05\/Apr\/2022/p' | wc -l
+```
+
+計算某一個時間的 PV 數 (4-5)
+
+```cmd
+cat nginx-access.example_log | sed -n '/06\/Apr\/2022:04/,/06\/Apr\/2022:05/p' | wc -l
+```
+
+計算每秒的 PV 數
+
+```cmd
+awk '{print $5}' nginx-access.example_log | cut -c 11-18 | sort | uniq -c | sort -n -r| head -n 10
+```
+
+計算每分鐘的 PV 數
+
+```cmd
+awk '{print $5}' nginx-access.example_log | cut -c 11-15 | sort | uniq -c | sort -n -r| head -n 10
+```
+
+計算每小時的 PV 數
+
+```cmd
+awk '{print $5}' nginx-access.example_log | cut -c 11-12 | sort | uniq -c | sort -n -r| head -n 10
+```
+
+`sort` 必需執行主要是因為 `uniq` 的關係, 可參考 [uniq](https://github.com/twtrubiks/linux-note#uniq).
+
+### UV
+
+Unique Visitor 的縮寫, 獨立的訪客, 每個訪客一天只算一次.
+
+這邊簡單用 IP 來當作獨立的訪客,
+
+依據 IP 計算 UV 數量
+
+```cmd
+❯ awk '{print $2}' nginx-access.example_log | sort | uniq -c | wc -l
+2
+```
+
+### IP
+
+計算每個 IP 出現次數
+
+```cmd
+❯ awk '{print $2}' nginx-access.example_log | sort | uniq -c | sort -n
+      2 172.30.0.1
+      2 172.30.0.2
+```
+
+計算訪問最頻繁的前 10 個 IP
+
+```cmd
+awk '{print $2}' nginx-access.example_log | sort -n | uniq -c | sort -n -r | head -n 10
+```
+
+查詢某 IP 的訪問 URL 狀態
+
+```cmd
+grep '172.30.0.2' nginx-access.example_log | awk '{print $8}' | sort | uniq -c | sort -n -r
+```
+
+### 其他
+
+查詢訪問最頻繁的 URL
+
+```cmd
+awk '{print $8}' nginx-access.example_log | sort | uniq -c | sort -n
+```
+
+查詢訪問最頻繁的 URL ( 排除特定 URL )
+
+```cmd
+grep -v "/api/" nginx-access.example_log | awk '{print $8}' | sort | uniq -c | sort -n -r
+```
+
+查詢傳輸時間超過 0.3 秒的頁面 ( 記得要在 [nginx.conf](https://github.com/twtrubiks/docker-django-nginx-uwsgi-postgres-tutorial/blob/master/nginx/nginx.conf) 加入 `$request_time` )
+
+```cmd
+❯ cat nginx-access.example_log | awk '($NF > 0.3){print $21}' | sort -n | uniq -c | sort -n -r
+      1 0.506
+      1 0.306
+```
+
+查詢訪問最頻訪的 host
+
+```cmd
+❯ awk '{print $1}' nginx-access.example_log | sort | uniq -c | sort -n
+      4 localhost
+```
+
+如果以上指令不熟, 可參考 [紀錄一些 linux 的指令](https://github.com/twtrubiks/linux-note).
+
 ## 後記：
 
 自己也是第一次建立 Django + Nginx + uWSGI + Postgres ，中間也搞了超久 :scream:，但我真心推薦 Docker，
@@ -655,6 +786,7 @@ django 上可以設定 CORS，透過 django-cors-headers 方法可參考 [文章
 
 ## 執行環境
 
+* Linux
 * Mac
 * Python 3.8.2
 * windows 10
