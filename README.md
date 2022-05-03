@@ -245,6 +245,18 @@ server {
 }
 ```
 
+也可以透過以下的指令初步測試 nginx 是否設定正確,
+
+```cmd
+nginx -t
+# or
+nginx -T
+```
+
+`-t` 代表 test configuration and exit.
+
+`-T` 代表 test configuration, dump it and exit.
+
 先來看 upstream 的部份，使用 Unix sockets 的方式，
 
 會比使用
