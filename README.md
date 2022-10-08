@@ -14,6 +14,8 @@
 * [Youtube Tutorial PART 2 - Docker + Django + Nginx + uWSGI + Postgres - 原理步驟](https://youtu.be/9K4O1UuaXrU)
 * [Youtube Tutorial PART 3 - Docker + Django + Nginx + uWSGI + Postgres - 實戰](https://youtu.be/v7Mf9TuROnc)
 
+* [Youtube Tutorial - 透過 Nginx Log 分析 PV UV](https://youtu.be/mUyDVVX6OD4) - [文章快速連結](https://github.com/twtrubiks/docker-django-nginx-uwsgi-postgres-tutorial#%E9%80%8F%E9%81%8E-nginx-log-%E5%88%86%E6%9E%90-pv-uv)
+
 ## 簡介
 
 ### [Docker](https://www.docker.com/)
@@ -650,6 +652,8 @@ django 上可以設定 CORS，透過 django-cors-headers 方法可參考 [文章
 
 ## 透過 Nginx Log 分析 PV UV
 
+* [Youtube Tutorial - 透過 Nginx Log 分析 PV UV](https://youtu.be/mUyDVVX6OD4)
+
 使用的可參考 [nginx.conf](https://github.com/twtrubiks/docker-django-nginx-uwsgi-postgres-tutorial/blob/master/nginx/nginx.conf),
 
 ```conf
@@ -779,6 +783,59 @@ grep -v "/api/" nginx-access.example_log | awk '{print $8}' | sort | uniq -c | s
 
 如果以上指令不熟, 可參考 [紀錄一些 linux 的指令](https://github.com/twtrubiks/linux-note).
 
+## 封鎖惡意蜘蛛爬蟲
+
+有些蜘蛛爬蟲真的品質很差, 甚至影響系統的速度, 這邊教大家如何阻擋,
+
+到你的 nginx 設定中加入 (這邊阻擋 MJ12bot)
+
+```conf
+if ($http_user_agent ~* (MJ12bot) ) {
+    return 444;
+}
+```
+
+`~*` 代表不區分大小寫
+
+`~`  代表區分大小寫
+
+如果想要 ban 很多爬蟲,
+
+```conf
+if ($http_user_agent ~* (MJ12bot|Semrush|DataForSeo|Yandex|Ahrefs|Petal|Dot)){
+     return 444;
+}
+```
+
+( http response code 也有人使用 410, 但似乎更多人使用 444)
+
+重啟 nginx 後, 使用以下指令檢查是否成功
+
+```cmd
+❯ curl -I -A 'mj12bot' YOUR_DOMAIN
+curl: (52) Empty reply from server
+```
+
+其他範例
+
+```cmd
+curl -A "Mozilla/5.0 (compatible; SemrushBot/6~bl; +http://www.semrush.com/bot.html)" YOUR_DOMAIN
+
+curl -A "Mozilla/5.0 (compatible; AhrefsBot/7.0; +http://ahrefs.com/robot/)" YOUR_DOMAIN
+
+curl -A "Mozilla/5.0 (Linux; Android 7.0;) AppleWebKit/537.36 (KHTML, like Gecko) Mobile Safari/537.36 (compatible; PetalBot;+https://webmaster.petalsearch.com/site/petalbot)" YOUR_DOMAIN
+```
+
+`-I`, `--head` Show document info only.
+
+`-A`, `--user-agent <name>` Send User-Agent <name> to server.
+
+如果成功阻擋, 會和上面顯示一樣.
+
+如果沒有成功阻擋, 會顯示正常的 200.
+
+也可以參考 [here](https://gist.github.com/hans2103/733b8eef30e89c759335017863bd721d)
+
 ## 後記：
 
 自己也是第一次建立 Django + Nginx + uWSGI + Postgres ，中間也搞了超久 :scream:，但我真心推薦 Docker，
@@ -792,6 +849,8 @@ grep -v "/api/" nginx-access.example_log | awk '{print $8}' | sort | uniq -c | s
 ，我也是 Docker 新手，如果我有任何講錯的地方，請麻煩大家和我說，我會再修改 :blush:
 
 如果意猶未盡，延伸閱讀 :satisfied:
+
+* [docker-letsencrypt-django-nginx-proxy-uwsgi-postgres](https://github.com/twtrubiks/docker-letsencrypt-django-nginx-proxy-uwsgi-postgres)
 
 * [實戰 Docker + Django + Nginx + uWSGI + Postgres - Load Balance 📝](https://github.com/twtrubiks/docker-django-nginx-uwsgi-postgres-load-balance-tutorial)
 * [Docker Swarm 基本教學 - 從無到有 Docker-Swarm-Beginners-Guide📝](https://github.com/twtrubiks/docker-swarm-tutorial)
