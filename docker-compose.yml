@@ -22,6 +22,7 @@ services:
         volumes:
         - api_data:/docker_api
         - ./log:/var/log/nginx
+        - ./my_htpasswd:/my_htpasswd
         depends_on:
         - api
 

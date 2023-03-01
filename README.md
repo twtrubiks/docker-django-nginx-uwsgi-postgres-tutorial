@@ -16,6 +16,8 @@
 
 * [Youtube Tutorial - 透過 Nginx Log 分析 PV UV](https://youtu.be/mUyDVVX6OD4) - [文章快速連結](https://github.com/twtrubiks/docker-django-nginx-uwsgi-postgres-tutorial#%E9%80%8F%E9%81%8E-nginx-log-%E5%88%86%E6%9E%90-pv-uv)
 
+* [Youtube Tutorial - NGINX 教學 - auth basic](https://youtu.be/zWODI3YHb2Y) - [文章快速連結](https://github.com/twtrubiks/docker-django-nginx-uwsgi-postgres-tutorial#%E8%A8%AD%E5%AE%9A-auth_basic)
+
 ## 簡介
 
 ### [Docker](https://www.docker.com/)
@@ -461,6 +463,8 @@ Nginx 負責靜態內容（ html css 圖片...... ），uWSGI 負責 Python 的�
 
 ## 即時監控 Nginx 網頁狀態
 
+* [Youtube Tutorial - NGINX 教學 - auth basic](https://youtu.be/zWODI3YHb2Y)
+
 打開 stub_status 模組, 請參考 [my_nginx.conf](https://github.com/twtrubiks/docker-django-nginx-uwsgi-postgres-tutorial/blob/master/nginx/my_nginx.conf),
 
 ```conf
@@ -487,6 +491,59 @@ location /nginx/status {
 也可以設定只允許哪些 ip 訪問此頁面, 如果不在 ip 內會出現拒絕403
 
 ![](https://i.imgur.com/iFZF8Yh.png)
+
+### 設定 auth_basic
+
+主要加入 `auth_basic` 和 `auth_basic_user_file`
+
+文件可參考 [Module ngx_http_auth_basic_module](http://nginx.org/en/docs/http/ngx_http_auth_basic_module.html)
+
+```conf
+location /nginx/status {
+    # 啟用 stub_status
+    stub_status on;
+
+    # 關閉/啟用 log
+    # access_log /usr/local/nginx/logs/status.log;
+    access_log off;
+
+    auth_basic "NginxStatus";
+    auth_basic_user_file /my_htpasswd/htpasswd;
+
+    # 限制可存取的 IP
+    # allow 127.0.0.1;
+    # deny all;
+}
+```
+
+建立一個 htpasswd 檔案, 檔案內容如下
+
+```text
+# comment
+name1:password1
+name2:password2:comment
+name3:password3
+```
+
+注意, 密碼需要使用 openssl 產生,
+
+例如, 我的密碼是 123
+
+```cmd
+❯ openssl passwd 123
+8uxCGNPhjFqiw
+```
+
+然後 htpasswd 檔案, 填入
+
+```text
+# comment
+user1:8uxCGNPhjFqiw:123
+```
+
+重新啟動 nginx, 就會發現要輸入帳密才能觀看,
+
+![](https://i.imgur.com/LKFcUGz.png)
 
 ## `hosts` 設定檔 以及 查詢內網 ip
 
