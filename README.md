@@ -387,7 +387,7 @@ vacuum          = true
 
 ![](https://i.imgur.com/196wOkr.png)
 
-接著再瀏覽 [http://localhost/api/music/](http://localhost/api/music/)
+接著再瀏覽 [http://localhost/api/musics/](http://localhost/api/musics/)
 
 ![](https://i.imgur.com/2QGKeex.png)
 
@@ -425,7 +425,7 @@ python manage.py collectstatic
 
 ![](https://i.imgur.com/zaz2bYX.png)
 
-接著可以再瀏覽 [http://localhost/api/music/](http://localhost/api/music/)，
+接著可以再瀏覽 [http://localhost/api/musics/](http://localhost/api/musics/)，
 
 你就會發現正常顯示了 :smile:
 
@@ -455,7 +455,7 @@ Nginx 負責靜態內容（ html css 圖片...... ），uWSGI 負責 Python 的�
 
 ## 執行畫面
 
-瀏覽 [http://localhost/api/music/](http://localhost/api/music/)
+瀏覽 [http://localhost/api/musics/](http://localhost/api/musics/)
 
 ![](https://i.imgur.com/z0KZWEp.png)
 
@@ -589,7 +589,7 @@ ifconfig
 
 還有剛剛教大家修改 `hosts` 設定檔的部分，
 
-我們可以直接瀏覽 [http://twtrubiks.com/api/music/](http://twtrubiks.com/api/music/)
+我們可以直接瀏覽 [http://twtrubiks.com/api/musics/](http://twtrubiks.com/api/musics/)
 
 ![](https://i.imgur.com/ufKRO9a.png)
 
@@ -643,7 +643,7 @@ container 時，你就適合使用 supervisor。
 如果你兩邊都設定，會出現類似以下的錯誤訊息
 
 ```text
-Access to XMLHttpRequest at 'http://127.0.0.1/api/music/' from origin 'http://127.0.0.1:8000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: The 'Access-Control-Allow-Origin' header contains multiple values '*, *', but only one is allowed.
+Access to XMLHttpRequest at 'http://127.0.0.1/api/musics/' from origin 'http://127.0.0.1:8000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: The 'Access-Control-Allow-Origin' header contains multiple values '*, *', but only one is allowed.
 ```
 
 方法二 : 只設定在 Nginx 上 ( 失敗 )
@@ -693,7 +693,7 @@ preflight request 可以被 Cache 多長的時間。在時間內，broswer 會�
 如果你設定在 Nginx 上，你會發現你的 CORS headers 被吃掉了，
 
 ```text
-Access to XMLHttpRequest at 'http://127.0.0.1/api/music/' from origin 'http://127.0.0.1:8000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+Access to XMLHttpRequest at 'http://127.0.0.1/api/musics/' from origin 'http://127.0.0.1:8000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.
 ```
 
 這個問題我暫時也找不到方法，相關 [issuse](https://github.com/unbit/uwsgi/issues/1550)。
