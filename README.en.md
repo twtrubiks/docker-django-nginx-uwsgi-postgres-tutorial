@@ -1,38 +1,44 @@
 # docker-django-nginx-uwsgi-postgres-tutorial
 
- Docker + Django + Nginx + uWSGI + Postgres Basic Tutorial - from nothing to something
+[中文版 - README.md](README.md)
 
- This tutorial teaches you how to setup [Django](https://www.djangoproject.com/) + [Nginx](https://nginx.org/en/) + [uWSGI](https://uwsgi-docs.readthedocs.io/en/latest/) + [PostgreSQL](https://www.postgresql.org/) with Docker 📝
+A basic tutorial on Docker + Django + Nginx + uWSGI + Postgres - From Scratch
 
-For those who are not familiar with [Docker](https://www.docker.com/), I suggest that you read my previous tutorials first:
+This guide teaches you how to build a Django + Nginx + uWSGI + PostgreSQL environment using [Docker](https://www.docker.com/) 📝
 
-[Docker 基本教學 - 從無到有 Docker-Beginners-Guide 教你用 Docker 建立 Django + PostgreSQL 📝](https://github.com/twtrubiks/docker-tutorial)
+For those unfamiliar with [Docker](https://www.docker.com/), it's recommended to first read my previous guide:
 
-* [Youtube Tutorial PART 1 - Docker + Django + Nginx + uWSGI + Postgres - 簡介](https://youtu.be/u4XIMTOsxJk)
-* [Youtube Tutorial PART 2 - Docker + Django + Nginx + uWSGI + Postgres - 原理步驟](https://youtu.be/9K4O1UuaXrU)
-* [Youtube Tutorial PART 3 - Docker + Django + Nginx + uWSGI + Postgres - 實戰](https://youtu.be/v7Mf9TuROnc)
+[Docker Beginners Guide - A tutorial on building Django + PostgreSQL with Docker 📝](https://github.com/twtrubiks/docker-tutorial)
 
-## Summary
+* [Youtube Tutorial PART 1 - Docker + Django + Nginx + uWSGI + Postgres - Introduction](https://youtu.be/u4XIMTOsxJk)
+* [Youtube Tutorial PART 2 - Docker + Django + Nginx + uWSGI + Postgres - Principles and Steps](https://youtu.be/9K4O1UuaXrU)
+* [Youtube Tutorial PART 3 - Docker + Django + Nginx + uWSGI + Postgres - Hands-on](https://youtu.be/v7Mf9TuROnc)
+
+* [Youtube Tutorial - Analyzing PV/UV with Nginx Log](https://youtu.be/mUyDVVX6OD4) - [Quick link to article section](https://github.com/twtrubiks/docker-django-nginx-uwsgi-postgres-tutorial/blob/master/README.en.md#analyzing-pvuv-with-nginx-log)
+
+* [Youtube Tutorial - NGINX Tutorial - auth basic](https://youtu.be/zWODI3YHb2Y) - [Quick link to article section](https://github.com/twtrubiks/docker-django-nginx-uwsgi-postgres-tutorial/blob/master/README.en.md#setting-up-auth_basic)
+
+## Introduction
 
 ### [Docker](https://www.docker.com/)
 
 ![](https://i.imgur.com/gDcSwcs.png)
 
-I have introduced Docker before, so I won't introduce it here :stuck_out_tongue_closed_eyes:
+I've covered this before, so I won't repeat it here :stuck_out_tongue_closed_eyes:
 
-Take a look at:
+Please refer to:
 
-[Docker 基本教學 - 從無到有 Docker-Beginners-Guide 教你用 Docker 建立 Django + PostgreSQL 📝](https://github.com/twtrubiks/docker-tutorial)
+[Docker Beginners Guide - A tutorial on building Django + PostgreSQL with Docker 📝](https://github.com/twtrubiks/docker-tutorial)
 
 ### [Django](https://github.com/django/django)
 
-Take a look at:
+Please refer to:
 
-[Django 基本教學 - 從無到有 Django-Beginners-Guide 📝](https://github.com/twtrubiks/django-tutorial)
+[Django Beginners Guide 📝](https://github.com/twtrubiks/django-tutorial)
 
-[Django-REST-framework 基本教學 - 從無到有 DRF-Beginners-Guide 📝](https://github.com/twtrubiks/django-rest-framework-tutorial)
+[Django-REST-framework Beginners Guide 📝](https://github.com/twtrubiks/django-rest-framework-tutorial)
 
-For more Django examples, check out my [Github](https://github.com/twtrubiks?utf8=%E2%9C%93&tab=repositories&q=Django&type=&language=), I have just listed two of the simpler ones here :relaxed:
+For more Django examples, you can check out my [Github](https://github.com/twtrubiks?utf8=%E2%9C%93&tab=repositories&q=Django&type=&language=). I'll just list two basic ones here :relaxed:
 
 ### [PostgreSQL](https://www.postgresql.org/)
 
@@ -42,79 +48,64 @@ For more Django examples, check out my [Github](https://github.com/twtrubiks?utf
 
 ![](https://i.imgur.com/AkcCtDa.png)
 
-Nginx is a type of Web Server that uses few resources and has high stability.
+Nginx is a web server known for its low resource consumption and high stability. Regarding its stability, Nginx solved the **C10K** problem. What is **C10K**? You can read the original article here: [The C10K problem](http://www.kegel.com/c10k.html).
 
-Nginx's high stability is a result of solving the **C10K** problem. What is **C10K**? The original literature can be found here [The C10K problem](http://www.kegel.com/c10k.html).
+**C10K** stands for 10,000 clients. In the past, a server might fail to provide services properly if the number of concurrent client connections exceeded 10,000.
 
-**C10K** is the Client 10000 problem. Previously, when a server receives more than 10000 concurrent connections, it may not be able to operate normally.
+Nginx itself cannot handle dynamic content, so we must configure [uWSGI](https://uwsgi-docs.readthedocs.io/en/latest/) to handle the interaction. Refer to the flow below (Important):
 
-Nginx does not natively support dynamic content, so, any dynamic content needs to be set up separately. [uWSGI](https://uwsgi-docs.readthedocs.io/en/latest/) is used to facilitate the communication between Nginx and the dynamic content.
+:star: the web client <-> the web server (Nginx) <-> unix socket <-> uWSGI <-> Django :star:
 
-Take a look at the diagram below (important)
+You might be asking, what is uWSGI? :confused:
 
-:star: the web client <-> the web server ( Nginx )  <-> unix socket  <-> uWSGI <-> Django :star:
+uWSGI is a communication protocol. You can think of it as an interface for communicating with Django. Typically, a Django application is hosted on an HTTP server (like Nginx). When the server receives a request, how does it pass (or convert) this data to Django?
 
-You may ask me, what is uWSGI :confused:?
+That's the function of uWSGI :wink:
 
-uWSGI implements a communication protocol. You can think of it as a connector (which communicates with Django).
+So why do we still need Nginx? :confused:
 
-Usually, Django will be put behind the http server ( Nginx ), so, when the server receives a request, how will it pass the data to Django?
+First, understand this concept:
+Nginx is responsible for static content (HTML, JS, CSS, images, etc.), while uWSGI is responsible for Python's dynamic content.
 
+uWSGI is not very good at handling static content (poor performance), so we can use Nginx to handle it. Using Nginx also has many other benefits:
 
-This is uWSGI's functionality :wink:
+* Nginx handles static resources better than uWSGI.
+* Nginx can be configured with a caching mechanism.
+* Nginx can be set up as a reverse proxy.
+* Nginx can perform load balancing across multiple machines.
 
-So why do we still need Nginx :confused:?
+Friendly reminder :heart:
 
-First, let's understand a concept,
+If you want to learn more about **reverse proxies**, you can refer to the explanation in [Forward Proxy vs. Reverse Proxy](https://github.com/twtrubiks/docker-django-nginx-uwsgi-postgres-load-balance-tutorial#%E6%AD%A3%E5%90%91%E4%BB%A3%E7%90%86%E5%99%A8--vs-%E5%8F%8D%E5%90%91%E4%BB%A3%E7%90%86%E5%99%A8) :smile:
 
-Nginx is in charge of static content (html, js, css, images, ...), uWSGI is in charge of Python's dynamic content.
+At this point, you might ask:
+Why don't I need Nginx and uWSGI when developing locally? :confused:
 
-uWSGI does not handle static content well (it's inefficient), so, we can use Nginx to handle static content. In addition, Nginx has a lot of other benefits.
+When developing Django, we usually run it with `python manage.py runserver`. When you execute this command, it actually creates a small HTTP server for you. Of course, this is just for development convenience; it's not used in a production environment (not to mention the performance issues :disappointed_relieved:).
 
-* Nginx, compared to uWSGI, handles static resources better
-* Nginx allows cache configuration
-* Nginx can act as a reverse proxy
-* Nginx can load balance multiple connections
-
-Gentle reminder :heart:
-
-If you would like learn more about **reverse proxies**, you can take a look at [forward proxy VS reverse proxy](https://github.com/twtrubiks/docker-django-nginx-uwsgi-postgres-load-balance-tutorial#%E6%AD%A3%E5%90%91%E4%BB%A3%E7%90%86%E5%99%A8--vs-%E5%8F%8D%E5%90%91%E4%BB%A3%E7%90%86%E5%99%A8) :smile:
-
-Up to this point, you may have some questions:
-
-Why can I still run Django without Nginx and uWSGI? :confused:
-
-To run Django, we usually use `python manage.py runserver` to run the server.
-
-Actually, when you run this command, Django helps you start a small http server.
-
-Of course, this is just for convenience during development. We would not do this in production ( not to mention performance :disappointed_relieved: )
-
-Hey :confused: isn't there Gunicorn? Previously you mentioned Gunicorn in
+Wait :confused: I've heard of something called Gunicorn. I remember you mentioned it before in:
 [Deploying_Django_To_Heroku_Tutorial](https://github.com/twtrubiks/Deploying_Django_To_Heroku_Tutorial)
 [Deploying-Flask-To-Heroku](https://github.com/twtrubiks/Deploying-Flask-To-Heroku)
 
-So why can't we use Gunicorn instead of uWSGI?
+So why use uWSGI instead of Gunicorn?
 
-The last time, when I used Gunicorn, it was because the application resided in Heroku, and it is recommended to use Gunicorn to set up a web server there. As for which is better, Gunicorn or uWSGI, I feel that it is up your use case :wink:
+At that time, I used Gunicorn because Heroku's official documentation recommended it for starting the web server. As for whether Gunicorn or uWSGI is better, I think it depends on your specific use case :wink:
 
-Wait a minute, since we are talking about Nginx, isn't there also [Apache](https://httpd.apache.org/)? I heard that a lot of people use that :stuck_out_tongue_winking_eye:
+Hold on, since we're talking about Nginx, isn't there also [Apache](https://httpd.apache.org/)? I hear a lot of people use that :stuck_out_tongue_winking_eye:
 
-You may also be asking, so should I choose [Nginx](https://nginx.org/en/) or [Apache](https://httpd.apache.org/) :confused:
+Some might ask, should I choose [Nginx](https://nginx.org/en/) or [Apache](https://httpd.apache.org/)? :confused:
 
-I think that there is no best server, if the server meets your requirements, the choose it :smiley:
+I believe there is no "best" server. The key is to choose the one that best fits your needs and scenario :smiley:
 
 ## Tutorial
 
-This time, I will be using Docker to set up 3 containers to separate Nginx, Django + uWSGI and Postgres
+In this tutorial, I will use Docker to create 3 containers: Nginx, Django + uWSGI, and Postgres.
 
-My main reference is [https://uwsgi-docs.readthedocs.io/en/latest/tutorials/Django_and_nginx.html](https://uwsgi-docs.readthedocs.io/en/latest/tutorials/Django_and_nginx.html) in this tutorial.
+I'm mainly following this tutorial: [https://uwsgi-docs.readthedocs.io/en/latest/tutorials/Django_and_nginx.html](https://uwsgi-docs.readthedocs.io/en/latest/tutorials/Django_and_nginx.html), but with some minor differences :smirk:
 
-But there are some differences :smirk:
+The focus will be on the configuration of Nginx and Django + uWSGI.
 
-The main focus this time will be on setting up of Nginx with Django + uWSGI
-
-**Nginx Section**, you can take a look at [Dockerfile](https://github.com/twtrubiks/docker-django-nginx-uswgi-postgres-tutorial/blob/master/nginx/Dockerfile) in the folder.
+**For the Nginx part**, refer to the [Dockerfile](https://github.com/twtrubiks/docker-django-nginx-uswgi-postgres-tutorial/blob/master/nginx/Dockerfile) in the Nginx folder.
 
 ```Dockerfile
 FROM nginx:latest
@@ -132,66 +123,40 @@ RUN mkdir -p /etc/nginx/sites-enabled/\
 CMD ["nginx", "-g", "daemon off;"]
 ```
 
-Let me explain the steps,
+Let's explain the steps inside:
 
-First Step
+First step:
+Copy `nginx.conf` to the `/etc/nginx/nginx.conf` path.
+(The original `nginx.conf` can be obtained from a Docker Nginx container, under the `/etc/nginx` path.)
+I've copied an original version for you here: [nginx_origin.conf](https://github.com/twtrubiks/docker-django-nginx-uswgi-postgres-tutorial/blob/master/nginx/nginx_origin.conf) :smiley:
 
-Copy nginx.conf to the `/etc/nginx/nginx.conf` path.
-
-(the original nginx.conf can be retrieved from the Nginx Docker container, inside the `/etc/nginx` path you can find nginx.conf)
-
-I have copied out a part of the original file [nginx_origin.conf](https://github.com/twtrubiks/docker-django-nginx-uswgi-postgres-tutorial/blob/master/nginx/nginx_origin.conf) :smiley:
-
-For nginx.conf, there are mainly two parts that needs to be modified.
-
-The first part is to change the user to root:
-
+Two main parts are modified in `nginx.conf`.
+One part is changing the user from `nginx` to `root`.
 ```conf
 user  root;
 ```
-
 The other part is:
-
 ```conf
 # include /etc/nginx/conf.d/*.conf;
 include /etc/nginx/sites-available/*;
 ```
+Add the line `include /etc/nginx/sites-available/*;` and comment out `include /etc/nginx/conf.d/*.conf;`.
+This way, the [Dockerfile](https://github.com/twtrubiks/docker-django-nginx-uswgi-postgres-tutorial/blob/master/nginx/Dockerfile) in the Nginx folder doesn't need to execute the command to delete `default.conf`, because `include /etc/nginx/conf.d/*.conf;` is the default page that runs, but we want to set up our own :smirk:
 
-Add a line `include /etc/nginx/sites-available/*;`
-
-and remove `include /etc/nginx/conf.d/*.conf;`
-
-This way the [Dockerfile](https://github.com/twtrubiks/docker-django-nginx-uswgi-postgres-tutorial/blob/master/nginx/Dockerfile)
-in the Nginx folder does not need the command to delete the default.conf because `include /etc/nginx/conf.d/*.conf;` is the default page that will run.
-
-But now, we need to configure it :smirk:
-
-Second Step
-
-Copy my_nginx.conf into `/etc/nginx/sites-available/`
-
-Let us pause here for a while,
-
-If you use `FROM nginx:latest` to install Nginx, you will discover that you do not have the two directories below:
-
+Second step:
+Copy `my_nginx.conf` into `/etc/nginx/sites-available/`.
+Let's pause here for a moment.
+If you install Nginx using `FROM nginx:latest`, you'll find that you don't have the following two paths:
 `/etc/nginx/sites-available/`
-
 `/etc/nginx/sites-enabled/`
+But don't worry, if they don't exist, we create them ourselves (which is what the command in the Nginx Dockerfile does).
+But why don't we have these paths? :confused:
+The reason is that these default paths seem to be created only when Nginx is installed via `apt-get`.
 
-but don't worry, if the directories aren't there, we will add them in ( which is what the commands in the Nginx Dockerfile is doing )
+Third step:
+The `sites-available` folder isn't actually that important; you can name it whatever you like. However, the *sites-enabled* folder is more important because we need to use the Symlink method (via the `ln` command in Linux) to link *sites-enabled* and *my_nginx.conf*.
 
-But why don't we have these directories in the first place :confused:
-
-The reason is because these directories are only created when Nginx is installed with `apt-get`.
-
-Third Step
-
-sites-available This directory is actually not important, you can create a folder with a name you want too, but
-
-*sites-enabled* This directory is more important because we need to use symlinks (through the Linux command `ln`) link *sites-enabled* with *my_nginx.conf.
-
-Next, let's talk about the configuration in my_nginx.conf
-
+Next, let's talk about the settings in `my_nginx.conf`:
 ```conf
 # the upstream component nginx needs to connect to
 upstream uwsgi {
@@ -224,64 +189,47 @@ server {
         uwsgi_pass  uwsgi;
         include     /etc/nginx/uwsgi_params; # the uwsgi_params file you installed
     }
-
 }
 ```
+You can also use the following commands to initially test if the nginx configuration is correct:
+```cmd
+nginx -t
+# or
+nginx -T
+```
+`-t` means test configuration and exit.
+`-T` means test configuration, dump it and exit.
 
-Let's first look at the upstream part.
+First, let's look at the `upstream` part. Using Unix sockets is better than using a TCP port socket because it has less overhead.
 
-It uses Unix sockets which is better than using TCP port sockets because there is less overhead.
+Next is the `include /etc/nginx/uwsgi_params` part. Generally, you can find `uwsgi_params` in the Nginx path `/etc/nginx/`. If you really can't find it, you can copy it from here: [uwsgi_params](https://github.com/twtrubiks/docker-django-nginx-uswgi-postgres-tutorial/blob/master/api/uwsgi_params).
+(I've copied a version for everyone; if you follow my steps, you should have it.)
 
-Next is `include     /etc/nginx/uwsgi_params`, usually the uwsgi_params can be found in the Nginx directory `/etc/nginx`.
+Next, I need to explain `uwsgi_pass`. You might have seen `proxy_pass` instead. Nginx will convert the received request according to the uwsgi protocol and then forward it to Django for processing.
+So why use uwsgi specifically instead of just proxy (which defaults to the http protocol)? :confused:
+The main reason is performance.
 
-If you really can't find it, you can copy one from [uwsgi_params](https://github.com/twtrubiks/docker-django-nginx-uswgi-postgres-tutorial/blob/master/api/uwsgi_params) (I copied out the file for everyone but if you follow my steps, you will probably have it)
+Since we're on this topic, let's briefly explain what a **Proxy server** is.
+Generally known as a proxy server, when a user from an external network sends a request, the Proxy server forwards this request to a server on the internal network for processing. After processing, the response is sent back to the external user through the Proxy server.
+What are the benefits of this? :confused: The benefit is that it can protect the internal server's security, preventing users from directly attacking the server. Other benefits include caching mechanisms; if a user accesses the same data again, it can be retrieved directly from the cache.
 
-Next, let's talk about uwsgi_pass or what you have seen is proxy_pass.
+Final step,
+Friendly reminder :heart:
+What is a daemon? :question::question::question:
+You don't need to overthink it; simply think of it as a service :smile:
+If you want to understand daemons more deeply, please google **linux daemon** :pencil2:
 
-Nginx will convert the request received to uwsgi's protocol. Then, it will pass the request to Django to handle it.
-
-Then why can't we just use a proxy ( default to http protocol ) but we have to use uwsgi :confused:?
-
-The main reason is because efficiency is taken into consideration.
-
-Since we have already talked about it so much, I'll briefly explain what is a **Proxy server**.
-
-When a client from an external network sends a request, the proxy server will forward it to an internal server to handle it. Once it's done, the response goes back through the proxy server to the client in the external network.
-
-What's the benefit in this :confused:? The benefit is that it protects the internal server, preventing clients from directly attacking the internal server.
-
-Another benefit is the caching mechanism. If the client accesses similar resources, the resources can be retrieved directly from cache.
-
-Last Step
-
-Gentle reminder :heart:
-
-What is a daemon :question::question::question:
-
-Actually, it is not very hard to understand, you can think of it as a type of service :smile:
-
-If you want to learn more about daemons, you can google **linux daemon** :pencil2:
-
-Why do we use `nginx -g daemon off` to start Nginx but not `/etc/init.d/nginx start` :confused:?
-
-This question requires us to go back and understand Docker.
-
-The excerpt below is from [Docker Nginx](https://hub.docker.com/_/nginx/)
-
+Why start Nginx with `nginx -g daemon off` instead of the usual `/etc/init.d/nginx start`? :confused:
+This question takes us back to Docker.
+The following is from the [Docker Nginx](https://hub.docker.com/_/nginx/) documentation:
 ***If you add a custom CMD in the Dockerfile, be sure to include -g daemon off; in the CMD in order for nginx to stay in the foreground, so that Docker can track the process properly (otherwise your container will stop immediately after starting)!***
+Simply put, this keeps the Nginx service running; otherwise, the container will exit and stop.
 
-Simply put, it is to keep the Nginx service running. If not, the container will exit.
+**For the Django + uWSGI part**, refer to the [Dockerfile](https://github.com/twtrubiks/docker-django-nginx-uswgi-postgres-tutorial/blob/master/api/Dockerfile) in the `api` folder.
+It's quite simple, but there's one thing I want to mention. Sometimes `pip install` is very slow.
+You can consider adding `-i` to change the source and speed up the download :grin:
 
-**Django + uWSGI Section**, you can take a look at the [Dockerfile](https://github.com/twtrubiks/docker-django-nginx-uswgi-postgres-tutorial/blob/master/api/Dockerfile) in the api folder
-
-It it mostly quite simple, but there I would like to point out one thing:
-
-Sometimes when we `pip install`, it runs very slowly.
-
-In these situations, we can add a `-i` option to change the index source, making it run a bit faster :grin:
-
-Next, I'll explain uwsgi.ini, inside of which are some configuration files
-
+Next, let's explain `uwsgi.ini`, which contains some configuration settings:
 ```ini
 [uwsgi]
 
@@ -301,26 +249,21 @@ module=django_rest_framework_tutorial.wsgi:application
 # clear environment on exit
 vacuum          = true
 ```
-
-Communication to Nginx is done through the socket file ( app.sock ). The uid and gid parts are permissions.
-
-You can take a look at the article below. The article includes why we do not use root permissions.
-
+It communicates with Nginx via a socket file (`app.sock`). `uid` and `gid` are for permissions.
+You can refer to this article for an explanation, which mentions not using root permissions:
 [Things to know (best practices and 「issues」) READ IT !!!](http://uwsgi-docs.readthedocs.io/en/latest/ThingsToKnow.html)
 
-I decided to use root anyways because without root, there will be permission errors which I finally found my answer [here](https://stackoverflow.com/questions/18480201/ubuntu-nginx-emerg-bind-to-0-0-0-080-failed-13-permission-denied)
-
+I ultimately chose to run it as root because without root, I encountered permission errors.
+I finally found the answer [here](https://stackoverflow.com/questions/18480201/ubuntu-nginx-emerg-bind-to-0-0-0-080-failed-13-permission-denied):
 *the socket API bind() to a port less than 1024, such as 80 as your title mentioned, need root access.*
+The simpler solution is to run it as root :smile:
 
-The simpler solution is to run with root :smile:
+Finally, we use `docker-compose.yml` to manage these containers.
+You can directly refer to [docker-compose.yml](https://github.com/twtrubiks/docker-django-nginx-uswgi-postgres-tutorial/blob/master/docker-compose.yml).
 
-Lastly, I used `docker-compose.yml` to manage my containers.
+## Execution Steps
 
-See my [docker-compose.yml](https://github.com/twtrubiks/docker-django-nginx-uswgi-postgres-tutorial/blob/master/docker-compose.yml)
-
-## Steps to run
-
-Run `docker-compose up` and watch the magic happen.
+Directly run `docker-compose up` and witness the magic.
 
 You will see something like this:
 
@@ -328,29 +271,31 @@ You will see something like this:
 
 ![](https://i.imgur.com/I67WDJU.png)
 
-If you then see something like the below, then it has run successfully.
+If you see the following, it means success:
 
 ![](https://i.imgur.com/WwRLm4C.png)
 
 ![](https://i.imgur.com/G28IGca.png)
 
-Next, go to [http://localhost:8080/api/music/](http://localhost:8080/api/music/)
+Next, browse to [http://localhost/](http://localhost/)
+If you successfully see the following screen, you've taken a small step forward:
 
-If you immediately see something like the image below, it means that you have completed a small step.
+![](https://i.imgur.com/196wOkr.png)
 
-Seeing this is normal, because we still need to migrate.
+Then browse to [http://localhost/api/musics/](http://localhost/api/musics/)
 
-![](https://i.imgur.com/d0jlMo9.png)
+![](https://i.imgur.com/2QGKeex.png)
 
-The terminal output is also fine ( though it is easy to get stuck here :sweat_smile: )
+Seeing this is normal because we still need to migrate.
+
+The terminal output also has no issues (although this is where it's easy to get stuck :sweat_smile:).
 
 ![](https://i.imgur.com/RBW8eQt.png)
 
-Next, open another terminal and go into the api ( Django + uWSGI ) container.
+Next, open another terminal and enter the `api` (Django + uWSGI) container.
+For commands, you can refer to the previous [docker-tutorial-command-introduction](https://github.com/twtrubiks/docker-tutorial#指令介紹).
 
-You can find the steps in the previous [docker-tutorial-指令介紹](https://github.com/twtrubiks/docker-tutorial#指令介紹)，
-
-You can also use other GUI applications like the [previously introduced portainer](https://github.com/twtrubiks/docker-tutorial#其他管理-docker-gui-的工具)
+You can also use other GUI tools like the [previously introduced portainer](https://github.com/twtrubiks/docker-tutorial#其他管理-docker-gui-的工具).
 
 ```cmd
 docker exec -it <Container ID> bash
@@ -364,67 +309,145 @@ python manage.py createsuperuser
 
 ![](https://i.imgur.com/haHcokf.png)
 
-This time, we need to run a different command
+This time we need to run one more command:
 
 ```cmd
 python manage.py collectstatic
 ```
 
-This takes all the static files in Django and collates them into the static folder.
+This collects Django's static files into a `static` folder.
 
 ![](https://i.imgur.com/zaz2bYX.png)
 
-Next, you can go to [http://localhost:8080/api/music/](http://localhost:8080/api/music/), then you will see the normal page :smile:
+Now you can browse to [http://localhost/api/musics/](http://localhost/api/musics/) again,
+and you will find that it displays normally :smile:
 
-![](https://i.imgur.com/EybsFZ3.png)
+![](https://i.imgur.com/eb7O0g8.png)
 
-Why do we need to do this step?
+Why do we need to perform this step?
+The main reason is to hand over these static files to Nginx for processing. In `my_nginx.conf`, you can see that we pointed the path to `/docker_api/static`.
 
-The purpose of the step is to pass all the static content to Nginx to process. In my_nginx.conf, you will notice that we pointed Nginx to the `/docker_api/static` path.
+As mentioned earlier,
+Nginx is responsible for static content (HTML, CSS, images, etc.), while uWSGI is responsible for Python's dynamic content.
 
-As said above, Nginx is in charge of all the static content ( html, css, images, ...... ) while uWSGI is in charge of Python's dynamic content.
+If you're interested, you can try running Django + uWSGI without Nginx. It will still run, but you'll find that all your CSS, images, etc., won't be loaded, as shown below:
 
-If you are interested to try it out, use Django + uWSGI without Nginx. If you do this, it will function normally but you will notice that the css, images and others cannot be retrieved, as shown below
+![](https://i.imgur.com/rgPfYeT.png)
 
-![](https://i.imgur.com/btiI68s.png)
+This is because uWSGI itself is not good at handling static content :sob:
+Although it can be solved, see [https://uwsgi-docs.readthedocs.io/en/latest/StaticFiles.html](https://uwsgi-docs.readthedocs.io/en/latest/StaticFiles.html),
+it's recommended to use Nginx, as it can do much more :smiley:
 
-Because uWSGI does not handle static content well :sob:
+## Execution Screenshots
 
-Though this can be resolved. Take a look at [https://uwsgi-docs.readthedocs.io/en/latest/StaticFiles.html](https://uwsgi-docs.readthedocs.io/en/latest/StaticFiles.html)
+Browse to [http://localhost/api/musics/](http://localhost/api/musics/)
 
-but I recommend that you use Nginx, because it can do more things :smiley:
+![](https://i.imgur.com/z0KZWEp.png)
 
-## Final Result
+![](https://i.imgur.com/szUTVAx.png)
 
-Go to [http://localhost:8080/api/music/](http://localhost:8080/api/music/)
+## Real-time Monitoring of Nginx Web Status
 
-![](https://i.imgur.com/jl43jST.png)
+* [Youtube Tutorial - NGINX Tutorial - auth basic](https://youtu.be/zWODI3YHb2Y)
 
-![](https://i.imgur.com/Fw6LjbE.png)
+Enable the `stub_status` module, please refer to [my_nginx.conf](https://github.com/twtrubiks/docker-django-nginx-uwsgi-postgres-tutorial/blob/master/nginx/my_nginx.conf),
 
-## `hosts` Configuration and Finding Your IP Address
+```conf
+location /nginx/status {
+    # Enable stub_status
+    stub_status on;
 
-Edit the `hosts` configuration file
+    # Disable/Enable log
+    # access_log /usr/local/nginx/logs/status.log;
+    access_log off;
 
-Windows
+    auth_basic "NginxStatus";
 
-`hosts` is located at
+    # Restrict accessible IPs
+    # allow 127.0.0.1;
+    # deny all;
+}
+```
+
+Current Nginx connection status:
+
+![](https://i.imgur.com/GWysybq.png)
+
+You can also set which IPs are allowed to access this page. If an IP is not in the list, it will be denied with a 403 error.
+
+![](https://i.imgur.com/iFZF8Yh.png)
+
+### Setting up auth_basic
+
+Mainly add `auth_basic` and `auth_basic_user_file`.
+Documentation can be found at [Module ngx_http_auth_basic_module](http://nginx.org/en/docs/http/ngx_http_auth_basic_module.html).
+
+```conf
+location /nginx/status {
+    # Enable stub_status
+    stub_status on;
+
+    # Disable/Enable log
+    # access_log /usr/local/nginx/logs/status.log;
+    access_log off;
+
+    auth_basic "NginxStatus";
+    auth_basic_user_file /my_htpasswd/htpasswd;
+
+    # Restrict accessible IPs
+    # allow 127.0.0.1;
+    # deny all;
+}
+```
+
+Create a `htpasswd` file with the following content:
+
+```text
+# comment
+name1:password1
+name2:password2:comment
+name3:password3
+```
+
+Note that the password needs to be generated using OpenSSL.
+For example, if my password is `123`:
+
+```cmd
+❯ openssl passwd 123
+8uxCGNPhjFqiw
+```
+
+Then fill the `htpasswd` file with:
+
+```text
+# comment
+user1:8uxCGNPhjFqiw:123
+```
+
+Restart Nginx, and you will find that you need to enter a username and password to view the page.
+
+![](https://i.imgur.com/LKFcUGz.png)
+
+## `hosts` file configuration and finding internal IP
+
+Modify the `hosts` file.
+
+Windows:
+The `hosts` path is at
 
 > C:\WINDOWS\system32\drivers\etc\hosts
 
 ![](https://i.imgur.com/Q6lZyK0.png)
 
-You may need permissions to save the file.
+You may need administrator privileges to save.
 
-MAC
-
-`hosts` is located at
-
+Mac:
+The `hosts` path is at
 > sudo vi /etc/hosts
 
-Finding your IP address
+Find internal IP:
 
-Windows
+Windows:
 
 ```cmd
 ipconfig
@@ -432,7 +455,7 @@ ipconfig
 
 ![](https://i.imgur.com/sPOqIxM.png)
 
-MAC
+Mac:
 
 ```cmd
 ifconfig
@@ -440,59 +463,280 @@ ifconfig
 
 ![](https://i.imgur.com/BOs5BwZ.png)
 
-Let's say your ip address is 192.168.1.103, then those in the same network as you (intranet), can connect to you through this ip address.
+If you see something like `192.168.1.103`, you can access your site via this IP as long as you are on the same network (intranet).
+Also, with the `hosts` file modification we just did, we can directly browse to [http://twtrubiks.com/api/musics/](http://twtrubiks.com/api/musics/).
 
-As for the editing the `hosts` configuration file part, we can just go to [http://twtrubiks.com:8080/api/music/](http://twtrubiks.com:8080/api/music/)
+![](https://i.imgur.com/ufKRO9a.png)
 
-![](https://i.imgur.com/efEqLd0.png)
-
-## Introducing Supervisor
+## Introduction to Supervisor
 
 [Supervisor](http://supervisord.org/)
 
-is a type of process management tool. Using it, you can easily start, stop, restart and monitor one or many processes.
+is a process management tool. It makes it easy to start, stop, restart, and monitor one or more processes. If a process dies, Supervisor will automatically restart it without needing any custom scripts (no need to write your own shell scripts for control).
 
-For example, if a process stalls, once Supervisor notices, it will automatically restart the process. No need to write any programs ( such as your own shell programs ) to control it.
+At this point, you'll surely ask me: Should I use it? :confused:
+When do you need to use Supervisor?
+When you need to start multiple independent processes in the same container, Supervisor is suitable. For example, if you have Nginx + uWSGI + Django all in the same container, you should use Supervisor.
 
-Now, you may ask me:
+However, with Docker, it's generally recommended to separate Nginx and uWSGI + Django into different containers (i.e., two containers) and manage them with `docker-compose`, which is the approach in this example.
 
-Should I use Supervisor :confused:?
+So you might ask, how do I manage a container that terminates unexpectedly? :confused:
+You can refer to [docker-compose.yml](https://github.com/twtrubiks/docker-django-nginx-uswgi-postgres-tutorial/blob/master/docker-compose.yml) and use `restart=always`. It will automatically restart the container upon unexpected termination :relaxed:
 
-When do I use Supervisor?
+## CORS Pitfalls Sharing
 
-You use Supervisor when you need to start multiple independent processes in a container.
+* [Youtube Tutorial - Django + Nginx + uWSGI CORS Pitfalls Sharing](https://youtu.be/WY2zCVfvu1M)
 
-Let me give you an example, let's say you create a container with Nginx + uWSGI + Django, all in the same container. Then, in this case, Supervisor will be suitable.
+If you don't understand CORS, please read [Understanding Same-Origin Policy and CORS 📝](https://github.com/twtrubiks/CORS-tutorial) first.
 
-Though, if you are using Docker, having Nginx and uWSGI + Django separate is better ( meaning, separate them in two different containers )
+With a Django + Nginx + uWSGI setup, let's consider a question:
+Should I configure CORS on Nginx, on Django, or on both? :question:
 
-Then, use docker-compose to manage the containers; which is this example's method.
+In the spirit of experimentation, let's try all three scenarios (video recommended):
 
-Then you will ask, how do I manage containers which unexpectedly exit :confused:?
+Method 1: Configure on both (Failure)
+If you configure it on both, you will get an error message like this:
 
-In this case, you can take a look at the [docker-compose.yml](https://github.com/twtrubiks/docker-django-nginx-uswgi-postgres-tutorial/blob/master/docker-compose.yml) which uses `restart=always` to solve this problem. It will help you restart the container when the container exits unexpectedly :relaxed:
+```text
+Access to XMLHttpRequest at 'http://127.0.0.1/api/musics/' from origin 'http://127.0.0.1:8000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: The 'Access-Control-Allow-Origin' header contains multiple values '*, *', but only one is allowed.
+```
 
-## Conclusion
+Method 2: Configure only on Nginx (Failure)
+To configure CORS on Nginx, you can refer to [here](https://github.com/twtrubiks/docker-django-nginx-uwsgi-postgres-tutorial/blob/master/nginx/my_nginx.conf#L37).
+Additional notes:
 
-This also my first time setting up Django + Nginx + uWSGI + Postgres, during which I had to mess around with the configuration for a very long time :scream:. But, I wholeheartedly recommend Docker.
+**Access-Control-Allow-Origin**
+Allowed domains. For details, see [Access-Control-Allow-Origin](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin).
 
-Using Docker was really fun, even when I brake the project, I can just start over again. It's fast and, through this exercise, you will see that Nginx actually has a lot of features which you can play with such as the Load Balancer. Through which you can better understand servers; I myself understood a lot from it.
+**Access-Control-Allow-Credentials**
+For details, see [Access-Control-Allow-Credentials](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials).
 
-In short, I recommend that everyone get their hands dirty, follow my footsteps and play with it. I believe that more or less everyone will learn something.
+**Access-Control-Allow-Methods**
+For details, see [Access-Control-Allow-Methods](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Methods).
 
-I am also new to Docker, if I have done anything wrong, please let me know, I will make the necessary changes :blush:
+**Access-Control-Allow-Headers**
+A preflight request refers to the OPTIONS request sent by CORS.
+(If you don't know what a preflight request is, see [Preflight request](https://github.com/twtrubiks/CORS-tutorial#%E9%A0%90%E6%AA%A2%E8%AB%8B%E6%B1%82-preflight-request))
+An actual request is the actual request being sent. This refers to the actual request.
+For details, see [Access-Control-Allow-Headers](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Headers).
 
-If you are still learning to read, read more :satisfied:
+**Access-Control-Expose-Headers**
+Indicates which headers can be exposed as part of the response by making them available to the browser. By default, these headers are available:
+`Cache-Control`, `Content-Language`, `Content-Type`, `Expires`, `Last-Modified`, `Pragma`.
+If you want to access other headers, you must add them manually.
+For details, see [Access-Control-Expose-Headers](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Expose-Headers).
 
-* [實戰 Docker + Django + Nginx + uWSGI + Postgres - Load Balance 📝](https://github.com/twtrubiks/docker-django-nginx-uwsgi-postgres-load-balance-tutorial)
-* [Docker Swarm 基本教學 - 從無到有 Docker-Swarm-Beginners-Guide📝](https://github.com/twtrubiks/docker-swarm-tutorial)
+**Access-Control-Max-Age**
+How long the results of a preflight request can be cached. Within this time, the browser will use the cache.
+For details, see [Access-Control-Max-Age](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Max-Age).
 
-## Environment
+If you configure it on Nginx, you will find that your CORS headers are being ignored.
 
+```text
+Access to XMLHttpRequest at 'http://127.0.0.1/api/musics/' from origin 'http://127.0.0.1:8000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+```
+
+I haven't found a solution to this problem yet. Related [issue](https://github.com/unbit/uwsgi/issues/1550).
+(If anyone finds a solution, please let me know, and I'll try it out.)
+
+Method 3: Configure only on Django (Success)
+You can configure CORS on Django using `django-cors-headers`. For the method, refer to this [article](https://github.com/twtrubiks/CORS-tutorial#cors).
+
+**Therefore, if your environment is Django + Nginx + uWSGI, it is recommended to configure CORS on Django using `django-cors-headers`.**
+
+## Analyzing PV/UV with Nginx Log
+
+* [Youtube Tutorial - Analyzing PV/UV with Nginx Log](https://youtu.be/mUyDVVX6OD4)
+
+The configuration used can be found in [nginx.conf](https://github.com/twtrubiks/docker-django-nginx-uwsgi-postgres-tutorial/blob/master/nginx/nginx.conf).
+
+```conf
+http {
+    ......
+    log_format  main  '$host $remote_addr - $remote_user [$time_local] '
+                      '"$request" $status $body_bytes_sent '
+                      '"$http_referer" "$http_user_agent" '
+                      '$request_time';
+......
+```
+
+I have also provided an example log for you, see [nginx-access.example_log](https://github.com/twtrubiks/docker-django-nginx-uwsgi-postgres-tutorial/blob/master/nginx/nginx-access.example_log).
+
+```log
+localhost 172.30.0.1 - - [05/Apr/2022:03:45:05 +0000] "GET /api/ HTTP/1.1" 200 1722 "-" "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:98.0) Gecko/20100101 Firefox/98.0" 0.106
+localhost 172.30.0.1 - - [05/Apr/2022:03:46:05 +0000] "GET /api/ HTTP/1.1" 200 1722 "-" "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:98.0) Gecko/20100101 Firefox/98.0" 0.206
+localhost 172.30.0.2 - - [06/Apr/2022:04:45:05 +0000] "GET /api/ HTTP/1.1" 200 1722 "-" "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:98.0) Gecko/20100101 Firefox/98.0" 0.306
+localhost 172.30.0.2 - - [06/Apr/2022:04:47:05 +0000] "GET /api/ HTTP/1.1" 200 1722 "-" "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:98.0) Gecko/20100101 Firefox/98.0" 0.506
+```
+
+### PV
+Abbreviation for Page View. It can be simply seen as one request equals one PV.
+
+Calculate the total number of PVs:
+
+```cmd
+cat nginx-access.example_log | wc -l
+```
+
+Calculate the number of PVs for a specific day:
+
+```cmd
+cat nginx-access.example_log | sed -n '/05\/Apr\/2022/p' | wc -l
+```
+
+Calculate the number of PVs for a specific time range (4-5 o'clock):
+
+```cmd
+cat nginx-access.example_log | sed -n '/06\/Apr\/2022:04/,/06\/Apr\/2022:05/p' | wc -l
+```
+
+Calculate PVs per second:
+
+```cmd
+awk '{print $5}' nginx-access.example_log | cut -c 11-18 | sort | uniq -c | sort -n -r| head -n 10
+```
+
+Calculate PVs per minute:
+
+```cmd
+awk '{print $5}' nginx-access.example_log | cut -c 11-15 | sort | uniq -c | sort -n -r| head -n 10
+```
+
+Calculate PVs per hour:
+
+```cmd
+awk '{print $5}' nginx-access.example_log | cut -c 11-12 | sort | uniq -c | sort -n -r| head -n 10
+```
+
+`sort` must be executed mainly because of `uniq`. See [uniq](https://github.com/twtrubiks/linux-note#uniq).
+
+### UV
+Abbreviation for Unique Visitor. Each visitor is counted only once per day.
+Here, we simply use IP to represent a unique visitor.
+
+Calculate UV count based on IP:
+
+```cmd
+❯ awk '{print $2}' nginx-access.example_log | sort | uniq -c | wc -l
+2
+```
+
+### IP
+
+Count the occurrences of each IP:
+
+```cmd
+❯ awk '{print $2}' nginx-access.example_log | sort | uniq -c | sort -n
+      2 172.30.0.1
+      2 172.30.0.2
+```
+
+Find the top 10 most frequent IPs:
+```cmd
+awk '{print $2}' nginx-access.example_log | sort -n | uniq -c | sort -n -r | head -n 10
+```
+
+Query the visited URL status for a specific IP:
+
+```cmd
+grep '172.30.0.2' nginx-access.example_log | awk '{print $8}' | sort | uniq -c | sort -n -r
+```
+
+### Others
+
+Find the most frequently visited URLs:
+
+```cmd
+awk '{print $8}' nginx-access.example_log | sort | uniq -c | sort -n
+```
+
+Find the most frequently visited URLs (excluding specific URLs):
+
+```cmd
+grep -v "/api/" nginx-access.example_log | awk '{print $8}' | sort | uniq -c | sort -n -r
+```
+
+Find pages with a transfer time exceeding 0.3 seconds (remember to add `$request_time` to [nginx.conf](https://github.com/twtrubiks/docker-django-nginx-uwsgi-postgres-tutorial/blob/master/nginx/nginx.conf)):
+
+```cmd
+❯ cat nginx-access.example_log | awk '($NF > 0.3){print $21}' | sort -n | uniq -c | sort -n -r
+      1 0.506
+      1 0.306
+```
+
+Find the most frequently visited host:
+
+```cmd
+❯ awk '{print $1}' nginx-access.example_log | sort | uniq -c | sort -n
+      4 localhost
+```
+
+If you are not familiar with these commands, you can refer to [Notes on some linux commands](https://github.com/twtrubiks/linux-note).
+
+## Blocking Malicious Spiders
+
+Some spiders are of very poor quality and can even affect system speed. Here's how to block them.
+Add the following to your Nginx configuration (this blocks MJ12bot):
+
+```conf
+if ($http_user_agent ~* (MJ12bot) ) {
+    return 444;
+}
+```
+
+`~*` means case-insensitive.
+`~` means case-sensitive.
+
+If you want to ban many spiders:
+
+```conf
+if ($http_user_agent ~* (MJ12bot|Semrush|DataForSeo|Yandex|Ahrefs|Petal|Dot)){
+     return 444;
+}
+```
+
+(Some people use HTTP response code 410, but it seems more people use 444)
+
+After restarting Nginx, use the following command to check if it's successful:
+
+```cmd
+❯ curl -I -A 'mj12bot' YOUR_DOMAIN
+curl: (52) Empty reply from server
+```
+
+Other examples:
+
+```cmd
+curl -A "Mozilla/5.0 (compatible; SemrushBot/6~bl; +http://www.semrush.com/bot.html)" YOUR_DOMAIN
+
+curl -A "Mozilla/5.0 (compatible; AhrefsBot/7.0; +http://ahrefs.com/robot/)" YOUR_DOMAIN
+
+curl -A "Mozilla/5.0 (Linux; Android 7.0;) AppleWebKit/537.36 (KHTML, like Gecko) Mobile Safari/537.36 (compatible; PetalBot;+https://webmaster.petalsearch.com/site/petalbot)" YOUR_DOMAIN
+```
+
+`-I`, `--head` Show document info only.
+`-A`, `--user-agent <name>` Send User-Agent <name> to server.
+
+If successfully blocked, it will show the same as above.
+If not successfully blocked, it will show a normal 200.
+
+You can also refer to [here](https://gist.github.com/hans2103/733b8eef30e89c759335017863bd721d).
+
+## Afterword:
+
+This was my first time setting up Django + Nginx + uWSGI + Postgres, and it took me a long time to figure everything out :scream:. But I genuinely recommend Docker. Playing with this setup in Docker is amazing. If you mess up, you can just delete everything and start over. It's super fast. Through this exercise, everyone should also see that Nginx has many features to play with, like Load Balancing, which can help you understand servers better. I also realized through this that there's still a lot I don't know. In short, I recommend everyone to follow my steps and try it out. I believe you will gain something from it. I'm also a Docker newbie, so if I've said anything wrong, please let me know, and I will correct it :blush:
+
+If you're still hungry for more, here's some further reading :satisfied:
+* [docker-letsencrypt-django-nginx-proxy-uwsgi-postgres](https://github.com/twtrubiks/docker-letsencrypt-django-nginx-proxy-uwsgi-postgres)
+* [Hands-on Docker + Django + Nginx + uWSGI + Postgres - Load Balance 📝](https://github.com/twtrubiks/docker-django-nginx-uwsgi-postgres-load-balance-tutorial)
+* [Docker Swarm Beginners Guide 📝](https://github.com/twtrubiks/docker-swarm-tutorial)
+
+## Execution Environment
+
+* Linux
 * Mac
 * Python 3.8.2
-* windows 10
-* Liunx
+* Windows 10
 
 ## Reference
 
@@ -501,11 +745,11 @@ If you are still learning to read, read more :satisfied:
 
 ## Donation
 
-This document is the result of my own internalization after researching. If it has helped you, and you would like to encourage me, you're welcome to buy me a cup of coffee :laughing:
+All articles are original, based on my own research and understanding. If this has helped you and you'd like to encourage me, feel free to buy me a coffee :laughing:
 
-![alt tag](https://i.imgur.com/LRct9xa.png)
+![](https://i.imgur.com/LRct9xa.png)
 
-[Sponsor Me](https://payment.opay.tw/Broadcaster/Donate/9E47FDEF85ABE383A0F5FC6A218606F8)
+[Sponsor Payment](https://payment.opay.tw/Broadcaster/Donate/9E47FDEF85ABE383A0F5FC6A218606F8)
 
 ## License
 
